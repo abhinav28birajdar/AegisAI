@@ -1,26 +1,186 @@
 @import "tailwindcss";
 
+/* Custom CSS Variables for consistent theming */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Primary Colors - Civic/Government theme */
+  --color-primary: 59 130 246; /* blue-500 */
+  --color-primary-foreground: 255 255 255;
+  
+  /* Secondary Colors */
+  --color-secondary: 100 116 139; /* slate-500 */
+  --color-secondary-foreground: 255 255 255;
+  
+  /* Background Colors */
+  --color-background: 255 255 255;
+  --color-foreground: 15 23 42; /* slate-900 */
+  
+  /* Muted Colors */
+  --color-muted: 248 250 252; /* slate-50 */
+  --color-muted-foreground: 100 116 139; /* slate-500 */
+  
+  /* Border and Input */
+  --color-border: 226 232 240; /* slate-200 */
+  --color-input: 226 232 240; /* slate-200 */
+  --color-ring: 59 130 246; /* blue-500 */
+  
+  /* Status Colors */
+  --color-destructive: 239 68 68; /* red-500 */
+  --color-destructive-foreground: 255 255 255;
+  --color-success: 34 197 94; /* green-500 */
+  --color-success-foreground: 255 255 255;
+  --color-warning: 245 158 11; /* amber-500 */
+  --color-warning-foreground: 255 255 255;
+  
+  /* Card and Popover */
+  --color-card: 255 255 255;
+  --color-card-foreground: 15 23 42; /* slate-900 */
+  --color-popover: 255 255 255;
+  --color-popover-foreground: 15 23 42; /* slate-900 */
+  
+  /* Radius */
+  --radius: 0.5rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  --color-background: 2 6 23; /* slate-950 */
+  --color-foreground: 248 250 252; /* slate-50 */
+  
+  --color-muted: 15 23 42; /* slate-900 */
+  --color-muted-foreground: 148 163 184; /* slate-400 */
+  
+  --color-border: 30 41 59; /* slate-800 */
+  --color-input: 30 41 59; /* slate-800 */
+  
+  --color-card: 15 23 42; /* slate-900 */
+  --color-card-foreground: 248 250 252; /* slate-50 */
+  --color-popover: 15 23 42; /* slate-900 */
+  --color-popover-foreground: 248 250 252; /* slate-50 */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Base styles */
+* {
+  border-color: rgb(var(--color-border));
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: rgb(var(--color-background));
+  color: rgb(var(--color-foreground));
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Custom scrollbar */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(203 213 225) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgb(203 213 225);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(148 163 184);
+}
+
+/* Loading spinner animation */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Animation utilities */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.slide-in-from-top {
+  animation: slideInFromTop 0.3s ease-out;
+}
+
+.slide-in-from-bottom {
+  animation: slideInFromBottom 0.3s ease-out;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-force-break {
+    page-break-before: always;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --color-border: 0 0 0;
+    --color-ring: 0 0 255;
+  }
+  
+  .dark {
+    --color-border: 255 255 255;
+    --color-ring: 0 255 255;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

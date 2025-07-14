@@ -1,0 +1,77 @@
+'use client';
+
+import React from 'react';
+import { WagmiProvider } from 'wagmi';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
+import { polygon, polygonMumbai, mainnet, sepolia } from 'wagmi/chains';
+import { createConfig, http } from 'wagmi';
+import { injected, metaMask, safe, walletConnect } from 'wagmi/connectors';
+import { Web3Provider as AegisWeb3Provider } from '@/lib/web3-context';
+
+// Import RainbowKit styles
+import '@rainbow-me/rainbowkit/styles.css';
+
+// Create wagmi config with v2 syntax
+const config = createConfig({
+  chains: [polygonMumbai, polygon, sepolia, mainnet],
+  connectors: [
+    injected(),
+    metaMask(),
+    safe(),
+  ],
+  transports: {
+    [polygonMumbai.id]: http(),
+    [polygon.id]: http(),
+    [sepolia.id]: http(),
+    [mainnet.id]: http(),
+  },
+});
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+interface Web3ProvidersProps {
+  children: React.ReactNode;
+}
+
+export function Web3Provider({ children }: Web3ProvidersProps) {
+  return (
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider
+          theme={darkTheme({
+            accentColor: '#0070f3',
+            accentColorForeground: 'white',
+            borderRadius: 'medium',
+            fontStack: 'system',
+            overlayBlur: 'small',
+          })}
+          appInfo={{
+            appName: 'AegisAI Governance Platform',
+            disclaimer: ({ Text, Link }) => (
+              <Text>
+                By connecting your wallet, you agree to participate in the AegisAI decentralized governance ecosystem. 
+                Your wallet will be used for identity verification, reputation tracking, and secure complaint submission to the blockchain.
+                <br />
+                <Link href="https://aegis-ai.com/privacy">Privacy Policy</Link> | 
+                <Link href="https://aegis-ai.com/terms">Terms of Service</Link>
+              </Text>
+            ),
+          }}
+          modalSize="compact"
+        >
+          <AegisWeb3Provider>
+            {children}
+          </AegisWeb3Provider>
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
+  );
+}
