@@ -7,7 +7,6 @@ import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
 import { polygon, polygonMumbai, mainnet, sepolia } from 'wagmi/chains';
 import { createConfig, http } from 'wagmi';
 import { injected, metaMask, safe, walletConnect } from 'wagmi/connectors';
-import { Web3Provider as AegisWeb3Provider } from '@/lib/web3-context';
 
 // Import RainbowKit styles
 import '@rainbow-me/rainbowkit/styles.css';
@@ -67,9 +66,7 @@ export function Web3Provider({ children }: Web3ProvidersProps) {
           }}
           modalSize="compact"
         >
-          <AegisWeb3Provider>
-            {children}
-          </AegisWeb3Provider>
+          {children}
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

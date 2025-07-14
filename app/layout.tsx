@@ -21,11 +21,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Web3Provider>
-          <AuthProvider>
+        <AuthProvider>
+          <Web3Provider>
             {children}
-          </AuthProvider>
-        </Web3Provider>
+          </Web3Provider>
+        </AuthProvider>
       </body>
     </html>
   )

@@ -1,6 +1,6 @@
 # AegisAI – A Decentralized, AI-Powered Public Governance Platform
 
-🏆 **Hackathon Track 2.4 Submission** - AI × Web3 for Public Goods & Social Impact
+🏆 AI × Web3 for Public Goods & Social Impact
 
 AegisAI revolutionizes civic engagement by combining advanced AI analysis with blockchain transparency and CARV Protocol verification. Citizens can submit complaints that are intelligently categorized, immutably stored on-chain, and tracked through a reputation-based system.
 
