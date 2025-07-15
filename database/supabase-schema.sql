@@ -396,7 +396,7 @@ SELECT
     p.resolved_complaints,
     CASE 
         WHEN p.total_complaints > 0 
-        THEN ROUND((p.resolved_complaints::FLOAT / p.total_complaints * 100), 2)
+        THEN ROUND((p.resolved_complaints::NUMERIC / p.total_complaints * 100)::NUMERIC, 2)
         ELSE 0 
     END as success_rate
 FROM public.profiles p

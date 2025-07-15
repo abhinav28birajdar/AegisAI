@@ -1,12 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
 import { polygon, polygonMumbai, mainnet, sepolia } from 'wagmi/chains';
 import { createConfig, http } from 'wagmi';
 import { injected, metaMask, safe, walletConnect } from 'wagmi/connectors';
+import { AuthProvider } from "@/lib/auth-context";
+import { ThemeProvider } from "@/components/theme-provider";
 
 // Import RainbowKit styles
 import '@rainbow-me/rainbowkit/styles.css';
@@ -35,18 +37,57 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
+      retry: false,
     },
   },
 });
 
-interface Web3ProvidersProps {
+interface ProvidersProps {
   children: React.ReactNode;
 }
 
-export function Web3Provider({ children }: Web3ProvidersProps) {
+export function Providers({ children }: ProvidersProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div suppressHydrationWarning>{children}</div>;
+  }
+
   return (
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="light"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <WagmiProvider config={config}>
+          <QueryClientProvider client={queryClient}>
+            <RainbowKitProvider
+              theme={darkTheme({
+                accentColor: '#3B82F6',
+                accentColorForeground: 'white',
+                borderRadius: 'medium',
+              })}
+              showRecentTransactions={true}
+            >
+              {children}
+            </RainbowKitProvider>
+          </QueryClientProvider>
+        </WagmiProvider>
+      </ThemeProvider>
+    </AuthProvider>
+  );
+}
+
+// Keep the old export for backward compatibility
+export function Web3Provider({ children }: ProvidersProps) {
+  return <Providers>{children}</Providers>;
+}
         <RainbowKitProvider
           theme={darkTheme({
             accentColor: '#0070f3',

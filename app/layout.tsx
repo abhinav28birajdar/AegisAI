@@ -2,16 +2,14 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import { AuthProvider } from "@/lib/auth-context"
-import { Web3Provider as WagmiProvider } from "./providers"
-import { Web3Provider as AegisWeb3Provider } from "@/lib/web3-context"
+import { Providers } from "./providers"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "AegisAI - Decentralized AI-Powered Governance Platform",
+  title: "CivicChain - AI × Web3 × CARV Governance Platform",
   description:
-    "Transform civic engagement through AI agents, blockchain transparency, CARV data ownership, and decentralized governance for smarter communities.",
+    "Revolutionary civic engagement through AI intelligence, blockchain transparency, and CARV Protocol data sovereignty for smarter communities.",
 }
 
 export default function RootLayout({
@@ -20,15 +18,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <AuthProvider>
-          <WagmiProvider>
-            <AegisWeb3Provider>
-              {children}
-            </AegisWeb3Provider>
-          </WagmiProvider>
-        </AuthProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className} suppressHydrationWarning>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   )
