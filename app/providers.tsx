@@ -18,12 +18,15 @@ const config = createConfig({
     injected(),
     metaMask(),
     safe(),
+    walletConnect({
+      projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || '451f7ce63e391861923d8e3ace886fa9',
+    }),
   ],
   transports: {
-    [polygonMumbai.id]: http(),
-    [polygon.id]: http(),
-    [sepolia.id]: http(),
-    [mainnet.id]: http(),
+    [polygonMumbai.id]: http(`https://polygon-mumbai.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY || 'U5Jt00V6iqGHtY-51fqxF'}`),
+    [polygon.id]: http(`https://polygon-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY || 'U5Jt00V6iqGHtY-51fqxF'}`),
+    [sepolia.id]: http(`https://eth-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY || 'U5Jt00V6iqGHtY-51fqxF'}`),
+    [mainnet.id]: http(`https://eth-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY || 'U5Jt00V6iqGHtY-51fqxF'}`),
   },
 });
 

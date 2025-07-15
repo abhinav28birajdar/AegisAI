@@ -23,35 +23,11 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Get comprehensive AI analysis using Gemini (single call to avoid rate limits)
-    let analysis;
-    let emergencyCheck: {
-      isEmergency: boolean;
-      urgencyLevel: 'low' | 'medium' | 'high' | 'critical';
-      reasoning: string;
-      recommendedActions: string[];
-    } = {
-      isEmergency: false,
-      urgencyLevel: 'medium',
-      reasoning: 'Standard processing',
-      recommendedActions: ['Review by department']
-    };
-    
-    try {
-      analysis = await analyzeComplaint(title, description, location);
-      
-      // Derive emergency info from the main analysis to avoid extra API calls
-      emergencyCheck = {
-        isEmergency: analysis.isEmergency,
-        urgencyLevel: analysis.urgency,
-        reasoning: analysis.isEmergency ? 'AI detected high priority issue' : 'Standard processing',
-        recommendedActions: analysis.isEmergency ? ['Immediate escalation', 'Contact authorities'] : ['Review by department']
-      };
-    } catch (error) {
-      console.warn('Gemini AI rate limited, using fallback analysis');
-      // Use fallback analysis when rate limited
-      analysis = getFallbackAnalysis(title, description, location);
-    }
+    // Get comprehensive AI analysis using Gemini
+    const [analysis, emergencyCheck] = await Promise.all([
+      analyzeComplaint(title, description, location),
+      detectEmergency(title, description)
+    ])
     
     // Determine AI agent based on analysis
     let aiAgent = "TriageAgent"
@@ -149,50 +125,4 @@ export async function POST(request: NextRequest) {
       carvAttestationEligible: false
     }, { status: 200 })
   }
-}
-
-// Fallback analysis when AI is unavailable
-function getFallbackAnalysis(title: string, description: string, location?: string) {
-  const text = (title + ' ' + description).toLowerCase();
-  
-  // Simple keyword-based categorization
-  let category = 'General';
-  let department = 'General Services';
-  let priority = 3;
-  let urgency: 'low' | 'medium' | 'high' | 'critical' = 'medium';
-  
-  if (text.includes('road') || text.includes('street') || text.includes('pothole')) {
-    category = 'Infrastructure';
-    department = 'Public Works';
-  } else if (text.includes('water') || text.includes('sewer') || text.includes('drainage')) {
-    category = 'Utilities';
-    department = 'Water & Sewer';
-  } else if (text.includes('police') || text.includes('crime') || text.includes('safety')) {
-    category = 'Public Safety';
-    department = 'Police Department';
-    priority = 4;
-    urgency = 'high';
-  } else if (text.includes('fire') || text.includes('emergency')) {
-    category = 'Emergency';
-    department = 'Fire Department';
-    priority = 5;
-    urgency = 'critical';
-  } else if (text.includes('park') || text.includes('recreation')) {
-    category = 'Parks & Recreation';
-    department = 'Parks Department';
-  }
-  
-  return {
-    category,
-    subcategory: undefined,
-    priority,
-    urgency,
-    sentiment: 'neutral' as const,
-    department,
-    estimatedResolutionDays: 7,
-    isEmergency: priority >= 5,
-    confidence: 60,
-    tags: [category.toLowerCase()],
-    summary: `${category} complaint requiring attention`
-  };
 }

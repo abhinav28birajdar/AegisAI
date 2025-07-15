@@ -3,7 +3,8 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { AuthProvider } from "@/lib/auth-context"
-import { Web3Provider } from "./providers"
+import { Web3Provider as WagmiProvider } from "./providers"
+import { Web3Provider as AegisWeb3Provider } from "@/lib/web3-context"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -22,9 +23,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <Web3Provider>
-            {children}
-          </Web3Provider>
+          <WagmiProvider>
+            <AegisWeb3Provider>
+              {children}
+            </AegisWeb3Provider>
+          </WagmiProvider>
         </AuthProvider>
       </body>
     </html>

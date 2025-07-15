@@ -1,15 +1,42 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import { polygon, polygonMumbai, sepolia, mainnet } from 'wagmi/chains';
 
+// Alchemy RPC URLs with provided API key
+const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY || 'U5Jt00V6iqGHtY-51fqxF';
+
 // Web3 Configuration for AegisAI
 export const web3Config = getDefaultConfig({
   appName: 'AegisAI - Decentralized Governance Platform',
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'aegis-ai-governance',
+  projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || '451f7ce63e391861923d8e3ace886fa9',
   chains: [
-    polygonMumbai, // Primary testnet for development
-    polygon,      // Main deployment chain
-    sepolia,      // Ethereum testnet for testing
-    mainnet       // Future Ethereum mainnet support
+    {
+      ...polygonMumbai,
+      rpcUrls: {
+        default: { http: [`https://polygon-mumbai.g.alchemy.com/v2/${ALCHEMY_API_KEY}`] },
+        public: { http: [`https://polygon-mumbai.g.alchemy.com/v2/${ALCHEMY_API_KEY}`] }
+      }
+    },
+    {
+      ...polygon,
+      rpcUrls: {
+        default: { http: [`https://polygon-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`] },
+        public: { http: [`https://polygon-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`] }
+      }
+    },
+    {
+      ...sepolia,
+      rpcUrls: {
+        default: { http: [`https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}`] },
+        public: { http: [`https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}`] }
+      }
+    },
+    {
+      ...mainnet,
+      rpcUrls: {
+        default: { http: [`https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`] },
+        public: { http: [`https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`] }
+      }
+    }
   ],
   ssr: true, // If your dApp uses server side rendering (SSR)
 });
