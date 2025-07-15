@@ -106,8 +106,8 @@ export default function Home() {
               <Link href="#community" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Community
               </Link>
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/auth/signin">Sign In</Link>
+              <Button variant="secondary" size="sm">
+                <Link href="/auth/signin" className="w-full h-full block">Sign In</Link>
               </Button>
             </nav>
           </div>

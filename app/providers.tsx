@@ -88,31 +88,3 @@ export function Providers({ children }: ProvidersProps) {
 export function Web3Provider({ children }: ProvidersProps) {
   return <Providers>{children}</Providers>;
 }
-        <RainbowKitProvider
-          theme={darkTheme({
-            accentColor: '#0070f3',
-            accentColorForeground: 'white',
-            borderRadius: 'medium',
-            fontStack: 'system',
-            overlayBlur: 'small',
-          })}
-          appInfo={{
-            appName: 'AegisAI Governance Platform',
-            disclaimer: ({ Text, Link }) => (
-              <Text>
-                By connecting your wallet, you agree to participate in the AegisAI decentralized governance ecosystem. 
-                Your wallet will be used for identity verification, reputation tracking, and secure complaint submission to the blockchain.
-                <br />
-                <Link href="https://aegis-ai.com/privacy">Privacy Policy</Link> | 
-                <Link href="https://aegis-ai.com/terms">Terms of Service</Link>
-              </Text>
-            ),
-          }}
-          modalSize="compact"
-        >
-          {children}
-        </RainbowKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
-  );
-}
