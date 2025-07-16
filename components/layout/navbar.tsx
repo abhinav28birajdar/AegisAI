@@ -25,7 +25,7 @@ export const Navbar: React.FC = () => {
   return (
     <nav className="bg-white shadow-sm py-4 px-6 flex justify-between items-center sticky top-0 z-10">
       <Link href="/" className="text-2xl font-bold text-blue-600">
-        CivicChain
+        AegisAI
       </Link>
 
       <div className="flex items-center gap-4">

@@ -95,15 +95,37 @@ const mockActiveProposals = [
 ]
 
 export default function DashboardPage() {
-  const { profile, isAuthenticated, loading } = useCarvAuth()
+  const { profile, isAuthenticated, loading, initialized, hydrated } = useCarvAuth()
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [shouldRedirect, setShouldRedirect] = useState(false)
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000)
     return () => clearInterval(timer)
   }, [])
 
-  if (loading) {
+  // DISABLED: Only check for redirect after hydration and authentication check is complete
+  // useEffect(() => {
+  //   if (hydrated && initialized && !loading && !isAuthenticated) {
+  //     console.log('🔄 User not authenticated, preparing redirect')
+  //     const redirectTimer = setTimeout(() => {
+  //       setShouldRedirect(true)
+  //     }, 2000) // 2 second delay
+      
+  //     return () => clearTimeout(redirectTimer)
+  //   }
+  // }, [hydrated, initialized, loading, isAuthenticated])
+
+  // // Separate effect for actual redirect
+  // useEffect(() => {
+  //   if (shouldRedirect) {
+  //     console.log('🔄 Redirecting to signin page')
+  //     window.location.href = '/auth/signin?redirectedFrom=/dashboard'
+  //   }
+  // }, [shouldRedirect])
+
+  // Show loading while authentication is being checked
+  if (!hydrated || !initialized || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -114,14 +136,21 @@ export default function DashboardPage() {
     )
   }
 
+  // Show authenticating state while waiting to redirect
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Please sign in to access your dashboard</h1>
-          <Button asChild>
-            <Link href="/auth/signin">Sign In</Link>
-          </Button>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">
+            {shouldRedirect ? 'Redirecting to sign in...' : 'Checking authentication...'}
+          </p>
+          <div className="mt-4">
+            <Link href="/auth/signin">
+              <Button>Go to Sign In</Button>
+            </Link>
+          </div>
         </div>
       </div>
     )

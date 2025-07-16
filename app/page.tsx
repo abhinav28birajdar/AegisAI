@@ -1,4 +1,4 @@
-// Enhanced Landing Page for CivicChain
+// Enhanced Landing Page for AegisAI
 'use client'
 
 import React from 'react'
@@ -92,7 +92,7 @@ export default function Home() {
                 <Globe className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                CivicChain
+                AegisAI
               </span>
             </div>
             
@@ -207,7 +207,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              How CivicChain Works
+              How AegisAI Works
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Simple, secure, and transparent civic engagement in four steps
@@ -296,7 +296,7 @@ export default function Home() {
                 <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                   <Globe className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold">CivicChain</span>
+                <span className="text-xl font-bold">AegisAI</span>
               </div>
               <p className="text-gray-400 mb-4 max-w-md">
                 Empowering citizens and transforming governance through AI, Web3, and self-sovereign identity.
@@ -336,7 +336,7 @@ export default function Home() {
           </div>
           
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 CivicChain. Built for a transparent, participatory future.</p>
+            <p>&copy; 2025 AegisAI. Built for a transparent, participatory future.</p>
           </div>
         </div>
       </footer>

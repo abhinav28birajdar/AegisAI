@@ -189,7 +189,7 @@ export default function Web3Dashboard() {
               </CardHeader>
               <CardContent>
                 {tokenLoading ? (
-                  <LoadingSpinner className="w-6 h-6" />
+                  <LoadingSpinner size="md" />
                 ) : (
                   <>
                     <p className="text-2xl font-bold">{tokenReputation}</p>
@@ -315,7 +315,7 @@ export default function Web3Dashboard() {
             <CardContent>
               {complaintsLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <LoadingSpinner className="w-8 h-8" />
+                  <LoadingSpinner size="lg" />
                 </div>
               ) : complaintIds.length > 0 ? (
                 <div className="space-y-3">

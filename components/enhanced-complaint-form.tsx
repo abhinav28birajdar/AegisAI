@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useWeb3 } from '@/lib/web3-context';
 import { useSubmitComplaint } from '@/lib/blockchain-hooks';
 import { toast } from 'sonner';
@@ -151,7 +150,7 @@ export default function EnhancedComplaintForm() {
           isAnonymous: formData.isAnonymous
         });
 
-        setTxHash(blockchainTxHash.hash);
+        setTxHash(blockchainTxHash);
       }
 
       setStep('success');
@@ -206,8 +205,7 @@ export default function EnhancedComplaintForm() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
         <Card className="w-full max-w-md text-center">
-          <CardContent className="pt-6">
-            <LoadingSpinner className="w-16 h-16 mx-auto mb-4" />
+          <CardContent className="pt-6">                <div className="w-16 h-16 mx-auto mb-4 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
             <h2 className="text-xl font-bold mb-2">Submitting to Blockchain</h2>
             <p className="text-muted-foreground mb-4">
               Your complaint is being recorded on the blockchain for transparency and immutability.
@@ -218,7 +216,7 @@ export default function EnhancedComplaintForm() {
                 Database submission complete
               </div>
               <div className="flex items-center justify-center">
-                <LoadingSpinner className="w-4 h-4 mr-2" />
+                <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                 Blockchain transaction pending...
               </div>
             </div>
@@ -311,6 +309,7 @@ export default function EnhancedComplaintForm() {
             <div>
               <Label htmlFor="description">Detailed Description *</Label>
               <Textarea
+                label="Detailed Description"
                 id="description"
                 value={formData.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
@@ -448,7 +447,7 @@ export default function EnhancedComplaintForm() {
               className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
             >
               {isSubmitting ? (
-                <LoadingSpinner className="w-4 h-4 mr-2" />
+                <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
               ) : (
                 <ChevronRight className="w-4 h-4 mr-2" />
               )}

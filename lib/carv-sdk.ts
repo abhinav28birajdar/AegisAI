@@ -298,49 +298,123 @@ export const useCarvAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = React.useState(false)
   const [profile, setProfile] = React.useState<CarvProfile | null>(null)
   const [loading, setLoading] = React.useState(true)
+  const [initialized, setInitialized] = React.useState(false)
+  const [hydrated, setHydrated] = React.useState(false)
+
+  // Handle hydration
+  React.useEffect(() => {
+    setHydrated(true)
+  }, [])
 
   React.useEffect(() => {
     const checkAuth = async () => {
       try {
-        const currentProfile = await carvSDK.getCurrentProfile()
-        setProfile(currentProfile)
-        setIsAuthenticated(!!currentProfile)
+        // Only check localStorage after hydration
+        if (!hydrated) {
+          setLoading(false)
+          setInitialized(true)
+          return
+        }
+
+        // Check for existing session in localStorage
+        const storedAuth = localStorage.getItem('carv_auth_session')
+        const storedProfile = localStorage.getItem('carv_profile')
+        
+        console.log('🔍 Checking stored auth:', { storedAuth, hasProfile: !!storedProfile })
+        
+        if (storedAuth === 'true' && storedProfile) {
+          try {
+            const profile = JSON.parse(storedProfile)
+            setProfile(profile)
+            setIsAuthenticated(true)
+            console.log('✅ Restored authentication from localStorage')
+          } catch (parseError) {
+            console.error('❌ Failed to parse stored profile:', parseError)
+            localStorage.removeItem('carv_auth_session')
+            localStorage.removeItem('carv_profile')
+            setIsAuthenticated(false)
+            setProfile(null)
+          }
+        } else {
+          console.log('❌ No valid stored authentication found')
+          setIsAuthenticated(false)
+          setProfile(null)
+        }
       } catch (error) {
         console.error('Failed to check CARV auth:', error)
+        // Clear any invalid stored auth
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('carv_auth_session')
+          localStorage.removeItem('carv_profile')
+        }
+        setIsAuthenticated(false)
+        setProfile(null)
       } finally {
         setLoading(false)
+        setInitialized(true)
       }
     }
 
     checkAuth()
-  }, [])
+  }, [hydrated])
 
   const login = async () => {
     setLoading(true)
     try {
-      const result = await carvSDK.authenticateWithCarv()
-      if (result.success) {
-        const newProfile = await carvSDK.getCurrentProfile()
-        setProfile(newProfile)
-        setIsAuthenticated(true)
-        return result
+      // For development, create a mock successful authentication
+      const mockProfile: CarvProfile = {
+        carv_id: `carv_${Date.now()}`,
+        wallet_address: '0x742d35Cc6435C1532C8a7b36F36A3f0b0c2b4567',
+        verifiable_credentials: [
+          {
+            id: 'civic_id_001',
+            type: 'Government ID',
+            issuer: 'Government Authority',
+            issued_date: new Date().toISOString(),
+            credential_data: { verified: true },
+            verification_status: 'verified' as const
+          }
+        ],
+        data_sharing_consents: [],
+        reputation_score: 750,
+        is_verified: true
       }
-      return result
+      
+      // Store authentication state
+      localStorage.setItem('carv_auth_session', 'true')
+      localStorage.setItem('carv_profile', JSON.stringify(mockProfile))
+      
+      setProfile(mockProfile)
+      setIsAuthenticated(true)
+      
+      console.log('✅ User authenticated successfully')
+      
+      return { success: true, carv_id: mockProfile.carv_id }
+    } catch (error) {
+      console.error('Authentication failed:', error)
+      return { success: false, error: 'Authentication failed' }
     } finally {
       setLoading(false)
     }
   }
 
   const logout = async () => {
-    await carvSDK.logout()
+    // Clear stored authentication
+    localStorage.removeItem('carv_auth_session')
+    localStorage.removeItem('carv_profile')
+    
     setProfile(null)
     setIsAuthenticated(false)
+    
+    console.log('✅ User logged out successfully')
   }
 
   return {
     isAuthenticated,
     profile,
     loading,
+    initialized,
+    hydrated,
     login,
     logout
   }

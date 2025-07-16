@@ -2,8 +2,8 @@ import React from "react"
 import { cn } from "@/lib/utils"
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label: string
-  id: string
+  label?: string
+  id?: string
   error?: string
 }
 
@@ -11,9 +11,11 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ label, id, error, className, ...props }, ref) => {
     return (
       <div className="w-full">
-        <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
-          {label}
-        </label>
+        {label && (
+          <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
+            {label}
+          </label>
+        )}
         <input
           ref={ref}
           id={id}

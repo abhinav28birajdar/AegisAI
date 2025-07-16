@@ -50,7 +50,7 @@ const features = [
 ]
 
 export default function SignInPage() {
-  const { login, isAuthenticated, loading } = useCarvAuth()
+  const { login, isAuthenticated, loading, initialized, hydrated } = useCarvAuth()
   const [authMethod, setAuthMethod] = useState<'carv' | 'email'>('carv')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -58,13 +58,47 @@ export default function SignInPage() {
   const [emailLoading, setEmailLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [shouldRedirect, setShouldRedirect] = useState(false)
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      window.location.href = '/dashboard'
-    }
-  }, [isAuthenticated])
+  // DISABLED: Only check for redirect after hydration and authentication check is complete
+  // useEffect(() => {
+  //   if (hydrated && initialized && !loading && isAuthenticated) {
+  //     console.log('✅ User already authenticated, preparing redirect')
+  //     const redirectTimer = setTimeout(() => {
+  //       setShouldRedirect(true)
+  //     }, 1000) // 1 second delay
+      
+  //     return () => clearTimeout(redirectTimer)
+  //   }
+  // }, [hydrated, initialized, loading, isAuthenticated])
+
+  // // Separate effect for actual redirect
+  // useEffect(() => {
+  //   if (shouldRedirect) {
+  //     console.log('✅ Redirecting to dashboard')
+  //     window.location.href = '/dashboard'
+  //   }
+  // }, [shouldRedirect])
+
+  // DISABLED: Show redirect message if already authenticated
+  // if (hydrated && initialized && isAuthenticated && !loading) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center">
+  //       <div className="text-center">
+  //         <h1 className="text-2xl font-bold mb-4">Already Signed In!</h1>
+  //         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+  //         <p className="text-gray-600">
+  //           {shouldRedirect ? 'Redirecting to dashboard...' : 'Preparing dashboard...'}
+  //         </p>
+  //         <div className="mt-4">
+  //           <Link href="/dashboard">
+  //             <Button>Go to Dashboard</Button>
+  //           </Link>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   )
+  // }
 
   const handleCarvAuth = async () => {
     try {
@@ -90,12 +124,17 @@ export default function SignInPage() {
     setError('')
 
     try {
-      // Mock email authentication - replace with real Supabase auth
+      // For demo purposes, call the same login function for email auth
       if (email && password) {
-        setSuccess('Email authentication successful! Redirecting...')
-        setTimeout(() => {
-          window.location.href = '/dashboard'
-        }, 1500)
+        const result = await login()
+        if (result.success) {
+          setSuccess('Email authentication successful! Redirecting...')
+          setTimeout(() => {
+            window.location.href = '/dashboard'
+          }, 1500)
+        } else {
+          setError('Authentication failed. Please try again.')
+        }
       } else {
         setError('Please enter both email and password')
       }
@@ -103,6 +142,22 @@ export default function SignInPage() {
       setError('Email authentication failed. Please try again.')
     } finally {
       setEmailLoading(false)
+    }
+  }
+
+  const handleDemoLogin = async () => {
+    try {
+      setError('')
+      setSuccess('Demo login successful! Redirecting...')
+      const result = await login()
+      
+      if (result.success) {
+        setTimeout(() => {
+          window.location.href = '/dashboard'
+        }, 1000)
+      }
+    } catch {
+      setError('Demo login failed. Please try again.')
     }
   }
 
@@ -128,7 +183,7 @@ export default function SignInPage() {
                 <Globe className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                CivicChain
+                AegisAI
               </span>
             </Link>
             
@@ -138,8 +193,7 @@ export default function SignInPage() {
               </Link>
               <Link href="/about" className="text-gray-600 hover:text-gray-900 transition-colors">
                 About
-              </Link>
-              <Button variant="outline" size="sm" asChild>
+              </Link>                <Button variant="secondary" size="sm" asChild>
                 <Link href="/auth/signup">Sign Up</Link>
               </Button>
             </nav>
@@ -184,7 +238,7 @@ export default function SignInPage() {
                 <span className="font-semibold">Trusted by 15,000+ Citizens</span>
               </div>
               <p className="text-blue-100 text-sm">
-                Join thousands of engaged citizens already using CivicChain to build better communities.
+                Join thousands of engaged citizens already using AegisAI to build better communities.
               </p>
             </div>
           </div>
@@ -284,7 +338,7 @@ export default function SignInPage() {
                       <li>• Connect your Web3 wallet (MetaMask, etc.)</li>
                       <li>• Sign a message to verify ownership</li>
                       <li>• Your CARV ID will be automatically created</li>
-                      <li>• Access full CivicChain features instantly</li>
+                      <li>• Access full AegisAI features instantly</li>
                     </ul>
                   </div>
 
@@ -300,6 +354,22 @@ export default function SignInPage() {
                       </Link>
                     </p>
                   </div>
+
+                  {/* Demo Login for Testing */}
+                  <div className="mt-6 pt-4 border-t border-gray-200">
+                    <Button 
+                      onClick={handleDemoLogin}
+                      disabled={loading}
+                      variant="outline"
+                      className="w-full"
+                      size="sm"
+                    >
+                      🚀 Quick Demo Login (No Wallet Required)
+                    </Button>
+                    <p className="text-xs text-gray-500 mt-2 text-center">
+                      Skip wallet setup and explore AegisAI features instantly
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -310,7 +380,7 @@ export default function SignInPage() {
                 <CardHeader>
                   <CardTitle>Sign in with Email</CardTitle>
                   <CardDescription>
-                    Use your email address to access CivicChain
+                    Use your email address to access AegisAI
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -392,7 +462,7 @@ export default function SignInPage() {
                             Get enhanced security, privacy, and full platform features
                           </p>
                           <Button 
-                            variant="outline" 
+                            variant="secondary" 
                             size="sm"
                             onClick={() => setAuthMethod('carv')}
                             className="border-blue-200 text-blue-600 hover:bg-blue-50"
@@ -412,7 +482,7 @@ export default function SignInPage() {
               <p className="text-gray-600">
                 Don&apos;t have an account?{' '}
                 <Link href="/auth/signup" className="text-blue-600 hover:underline font-medium">
-                  Sign up for CivicChain
+                  Sign up for AegisAI
                 </Link>
               </p>
             </div>

@@ -1,13 +1,17 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
 import "./globals.css"
 import { Providers } from "./providers"
 
-const inter = Inter({ subsets: ["latin"] })
+// Using system fonts to avoid Google Fonts connectivity issues
+const systemFont = {
+  style: {
+    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  }
+}
 
 export const metadata: Metadata = {
-  title: "CivicChain - AI × Web3 × CARV Governance Platform",
+  title: "AegisAI - AI-Powered Civic Governance Platform",
   description:
     "Revolutionary civic engagement through AI intelligence, blockchain transparency, and CARV Protocol data sovereignty for smarter communities.",
 }
@@ -18,8 +22,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning style={systemFont.style}>
+      <body suppressHydrationWarning>
         <Providers>
           {children}
         </Providers>

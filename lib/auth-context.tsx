@@ -8,10 +8,10 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
-  signIn: (email: string, password: string) => Promise<{ error: any }>
-  signUp: (email: string, password: string, userData?: any) => Promise<{ error: any }>
-  signOut: () => Promise<{ error: any }>
-  resetPassword: (email: string) => Promise<{ error: any }>
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>
+  signUp: (email: string, password: string, userData?: Record<string, unknown>) => Promise<{ error: Error | null }>
+  signOut: () => Promise<{ error: Error | null }>
+  resetPassword: (email: string) => Promise<{ error: Error | null }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -77,13 +77,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password,
       })
-      return { error }
+      return { error: error as Error | null }
     } catch (error) {
-      return { error }
+      return { error: error as Error | null }
     }
   }
 
-  const signUp = async (email: string, password: string, userData?: any) => {
+  const signUp = async (email: string, password: string, userData?: Record<string, unknown>) => {
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -92,27 +92,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           data: userData,
         },
       })
-      return { error }
+      return { error: error as Error | null }
     } catch (error) {
-      return { error }
+      return { error: error as Error | null }
     }
   }
 
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut()
-      return { error }
+      return { error: error as Error | null }
     } catch (error) {
-      return { error }
+      return { error: error as Error | null }
     }
   }
 
   const resetPassword = async (email: string) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email)
-      return { error }
+      return { error: error as Error | null }
     } catch (error) {
-      return { error }
+      return { error: error as Error | null }
     }
   }
 

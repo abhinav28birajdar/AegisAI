@@ -1,35 +1,59 @@
 import React from "react"
 import { cn } from "@/lib/utils"
 
+const variantClasses = {
+  primary: "bg-violet-600 text-white hover:bg-violet-700 focus:ring-violet-500",
+  secondary: "bg-transparent border border-violet-600 text-violet-600 hover:bg-violet-50 focus:ring-violet-500",
+  danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
+  outline: "bg-transparent border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-500",
+  ghost: "bg-transparent text-gray-700 hover:bg-gray-100 focus:ring-gray-500",
+}
+
+const sizeClasses = {
+  sm: "px-3 py-1.5 text-sm",
+  md: "px-4 py-2",
+  lg: "px-6 py-3 text-lg",
+}
+
+export const buttonVariants = (options?: {variant?: "primary" | "secondary" | "danger" | "outline" | "ghost", size?: "sm" | "md" | "lg"}) => {
+  const baseClasses =
+    "inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed rounded-md"
+  
+  return cn(
+    baseClasses,
+    variantClasses[options?.variant || "primary"],
+    sizeClasses[options?.size || "md"]
+  )
+}
+
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode
-  variant?: "primary" | "secondary" | "danger"
+  variant?: "primary" | "secondary" | "danger" | "outline" | "ghost"
   size?: "sm" | "md" | "lg"
   icon?: React.ElementType
   isLoading?: boolean
+  asChild?: boolean
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ children, variant = "primary", size = "md", icon: Icon, isLoading, className, disabled, ...props }, ref) => {
+  ({ children, variant = "primary", size = "md", icon: Icon, isLoading, asChild, className, disabled, ...props }, ref) => {
     const baseClasses =
       "inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed rounded-md"
 
-    const variantClasses = {
-      primary: "bg-violet-600 text-white hover:bg-violet-700 focus:ring-violet-500",
-      secondary: "bg-transparent border border-violet-600 text-violet-600 hover:bg-violet-50 focus:ring-violet-500",
-      danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
-    }
+    const classes = cn(baseClasses, variantClasses[variant], sizeClasses[size], className)
 
-    const sizeClasses = {
-      sm: "px-3 py-1.5 text-sm",
-      md: "px-4 py-2",
-      lg: "px-6 py-3 text-lg",
+    if (asChild) {
+      return (
+        <span className={classes} {...props}>
+          {children}
+        </span>
+      )
     }
 
     return (
       <button
         ref={ref}
-        className={cn(baseClasses, variantClasses[variant], sizeClasses[size], className)}
+        className={classes}
         disabled={disabled || isLoading}
         {...props}
       >

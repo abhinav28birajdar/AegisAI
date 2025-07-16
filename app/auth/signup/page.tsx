@@ -57,7 +57,7 @@ export default function SignUp() {
       } else {
         setSuccess("Check your email for a confirmation link!")
       }
-    } catch (err) {
+    } catch (error) {
       setError("An unexpected error occurred")
     } finally {
       setIsLoading(false)
@@ -74,7 +74,7 @@ export default function SignUp() {
         <Card className="p-6">
           <div className="text-center mb-6">
             <h2 className="text-3xl font-bold text-gray-900">Create Your Account</h2>
-            <p className="mt-2 text-gray-600">Join CivicChain and make your voice heard</p>
+            <p className="mt-2 text-gray-600">Join AegisAI and make your voice heard</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

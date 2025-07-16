@@ -6,7 +6,8 @@ import { MainLayout } from "@/components/layout/main-layout"
 import { Card } from "@/components/ui/card"
 import { ShieldCheckIcon, ClockIcon, MapPinIcon, PhotoIcon } from "@heroicons/react/24/outline"
 
-export default async function ComplaintDetails({ params }: { params: { id: string } }) {
+export default async function ComplaintDetails({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params
   const supabase = createServerComponentClient({ cookies })
 
   const {
@@ -18,7 +19,7 @@ export default async function ComplaintDetails({ params }: { params: { id: strin
   }
 
   // Fetch complaint details
-  const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/complaints/${params.id}`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/complaints/${resolvedParams.id}`, {
     headers: {
       Cookie: cookies().toString(),
     },
