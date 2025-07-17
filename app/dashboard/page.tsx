@@ -1,13 +1,15 @@
 // Enhanced Citizen Dashboard for CivicChain
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { LoadingFallback } from '@/components/ui/loading-fallback'
+import { useAuth } from '@/lib/auth-context'
 import { useCarvAuth } from '@/lib/carv-sdk'
 import { 
   Plus, 
@@ -95,26 +97,21 @@ const mockActiveProposals = [
 ]
 
 export default function DashboardPage() {
+  const { user, loading: authLoading } = useAuth()
   const { profile, isAuthenticated, loading, initialized, hydrated } = useCarvAuth()
   const [currentTime, setCurrentTime] = useState(new Date())
-  const [shouldRedirect, setShouldRedirect] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     const timer = setInterval(() => setCurrentTime(new Date()), 1000)
     return () => clearInterval(timer)
   }, [])
 
-  // DISABLED: Only check for redirect after hydration and authentication check is complete
-  // useEffect(() => {
-  //   if (hydrated && initialized && !loading && !isAuthenticated) {
-  //     console.log('🔄 User not authenticated, preparing redirect')
-  //     const redirectTimer = setTimeout(() => {
-  //       setShouldRedirect(true)
-  //     }, 2000) // 2 second delay
-      
-  //     return () => clearTimeout(redirectTimer)
-  //   }
-  // }, [hydrated, initialized, loading, isAuthenticated])
+  // Show loading until everything is mounted and loaded
+  if (!mounted || authLoading || loading || !initialized) {
+    return <LoadingFallback />
+  }
 
   // // Separate effect for actual redirect
   // useEffect(() => {
@@ -144,7 +141,7 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold mb-4">Please sign in to access your dashboard</h1>
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">
-            {shouldRedirect ? 'Redirecting to sign in...' : 'Checking authentication...'}
+            Checking authentication...
           </p>
           <div className="mt-4">
             <Link href="/auth/signin">

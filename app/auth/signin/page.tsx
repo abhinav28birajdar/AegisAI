@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useAuth } from '@/lib/auth-context'
 import { useCarvAuth } from '@/lib/carv-sdk'
 import { 
   Shield, 
@@ -50,6 +51,7 @@ const features = [
 ]
 
 export default function SignInPage() {
+  const { user, loading: authLoading } = useAuth()
   const { login, isAuthenticated, loading, initialized, hydrated } = useCarvAuth()
   const [authMethod, setAuthMethod] = useState<'carv' | 'email'>('carv')
   const [email, setEmail] = useState('')
@@ -58,19 +60,21 @@ export default function SignInPage() {
   const [emailLoading, setEmailLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  const [shouldRedirect, setShouldRedirect] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
-  // DISABLED: Only check for redirect after hydration and authentication check is complete
-  // useEffect(() => {
-  //   if (hydrated && initialized && !loading && isAuthenticated) {
-  //     console.log('✅ User already authenticated, preparing redirect')
-  //     const redirectTimer = setTimeout(() => {
-  //       setShouldRedirect(true)
-  //     }, 1000) // 1 second delay
-      
-  //     return () => clearTimeout(redirectTimer)
-  //   }
-  // }, [hydrated, initialized, loading, isAuthenticated])
+  // Prevent hydration issues
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Show loading until mounted
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
 
   // // Separate effect for actual redirect
   // useEffect(() => {
@@ -79,6 +83,18 @@ export default function SignInPage() {
   //     window.location.href = '/dashboard'
   //   }
   // }, [shouldRedirect])
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   // DISABLED: Show redirect message if already authenticated
   // if (hydrated && initialized && isAuthenticated && !loading) {
@@ -124,22 +140,24 @@ export default function SignInPage() {
     setError('')
 
     try {
-      // For demo purposes, call the same login function for email auth
-      if (email && password) {
-        const result = await login()
-        if (result.success) {
-          setSuccess('Email authentication successful! Redirecting...')
-          setTimeout(() => {
-            window.location.href = '/dashboard'
-          }, 1500)
-        } else {
-          setError('Authentication failed. Please try again.')
-        }
-      } else {
+      if (!email || !password) {
         setError('Please enter both email and password')
+        return
       }
-    } catch {
-      setError('Email authentication failed. Please try again.')
+
+      const { signIn } = useAuth()
+      const result = await signIn(email, password)
+      
+      if (!result.error) {
+        setSuccess('Email authentication successful! Redirecting...')
+        setTimeout(() => {
+          window.location.href = '/dashboard'
+        }, 1500)
+      } else {
+        setError(result.error.message || 'Authentication failed. Please try again.')
+      }
+    } catch (error: any) {
+      setError(error?.message || 'Email authentication failed. Please try again.')
     } finally {
       setEmailLoading(false)
     }

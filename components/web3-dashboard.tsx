@@ -103,7 +103,8 @@ export default function Web3Dashboard() {
     const thresholds = [100, 500, 1000, 5000, 10000];
     const currentThreshold = thresholds[currentTier] || 0;
     const nextThreshold = thresholds[currentTier + 1] || 10000;
-    const progress = ((Number(tokenReputation) - currentThreshold) / (nextThreshold - currentThreshold)) * 100;
+    const reputationValue = typeof tokenReputation === 'number' ? tokenReputation : parseInt(tokenReputation as string) || 0;
+    const progress = ((reputationValue - currentThreshold) / (nextThreshold - currentThreshold)) * 100;
     return Math.min(Math.max(progress, 0), 100);
   };
 
@@ -195,8 +196,8 @@ export default function Web3Dashboard() {
                     <p className="text-2xl font-bold">{tokenReputation}</p>
                     <p className="text-xs text-muted-foreground">{stats.reputationRank}</p>
                     <div className="mt-2">
-                      <Progress value={getTierProgress(tier)} className="h-2" />
-                      <p className="text-xs mt-1">Tier {tier + 1}/6</p>
+                      <Progress value={getTierProgress(typeof tier === 'number' ? tier : 0)} className="h-2" />
+                      <p className="text-xs mt-1">Tier {(typeof tier === 'number' ? tier : 0) + 1}/6</p>
                     </div>
                   </>
                 )}
@@ -317,9 +318,9 @@ export default function Web3Dashboard() {
                 <div className="flex items-center justify-center py-8">
                   <LoadingSpinner size="lg" />
                 </div>
-              ) : complaintIds.length > 0 ? (
+              ) : (Array.isArray(complaintIds) && complaintIds.length > 0) ? (
                 <div className="space-y-3">
-                  {complaintIds.slice(0, 5).map((id, index) => (
+                  {complaintIds.slice(0, 5).map((id: any, index: number) => (
                     <div key={id} className="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg">
                       <div className="flex items-center">
                         <FileText className="w-4 h-4 text-blue-400 mr-3" />
