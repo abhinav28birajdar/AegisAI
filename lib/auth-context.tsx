@@ -35,10 +35,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [])
 
   useEffect(() => {
-    if (!mounted) return
+    if (!mounted || !supabase) {
+      // If supabase is not available, still set loading to false
+      if (!supabase) {
+        setLoading(false)
+      }
+      return
+    }
 
     // Get initial session
     const getInitialSession = async () => {
+      if (!supabase) return
       try {
         const { data: { session }, error } = await supabase.auth.getSession()
         if (error) {
@@ -57,21 +64,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     getInitialSession()
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event: AuthChangeEvent, session: Session | null) => {
-        console.log('Auth state changed:', event, session)
-        setSession(session)
-        setUser(session?.user ?? null)
-        setLoading(false)
-      }
-    )
+    if (supabase) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        async (event: AuthChangeEvent, session: Session | null) => {
+          console.log('Auth state changed:', event, session)
+          setSession(session)
+          setUser(session?.user ?? null)
+          setLoading(false)
+        }
+      )
 
-    return () => {
-      subscription.unsubscribe()
+      return () => {
+        subscription.unsubscribe()
+      }
     }
   }, [mounted])
 
   const signIn = async (email: string, password: string) => {
+    if (!supabase) {
+      return { error: new Error('Supabase client not available') }
+    }
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -84,6 +96,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const signUp = async (email: string, password: string, userData?: Record<string, unknown>) => {
+    if (!supabase) {
+      return { error: new Error('Supabase client not available') }
+    }
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -99,6 +114,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const signOut = async () => {
+    if (!supabase) {
+      return { error: new Error('Supabase client not available') }
+    }
     try {
       const { error } = await supabase.auth.signOut()
       return { error: error as Error | null }
@@ -108,6 +126,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const resetPassword = async (email: string) => {
+    if (!supabase) {
+      return { error: new Error('Supabase client not available') }
+    }
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email)
       return { error: error as Error | null }

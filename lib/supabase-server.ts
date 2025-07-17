@@ -1,10 +1,11 @@
 import { createServerComponentClient, createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 import { createClient } from "@supabase/supabase-js"
 import { cookies } from "next/headers"
+import { env, hasRealSupabaseConfig } from "./env-config"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY
 
 // For use in Server Components
 export const createServerSupabaseClient = () => {
@@ -18,6 +19,9 @@ export const createRouteHandlerSupabaseClient = () => {
 
 // For server-side operations that require elevated permissions
 export const createServiceSupabaseClient = () => {
+  if (!hasRealSupabaseConfig || supabaseServiceKey.includes('placeholder')) {
+    throw new Error('Missing Supabase environment variables for service client')
+  }
   return createClient(supabaseUrl, supabaseServiceKey, {
     auth: {
       autoRefreshToken: false,
@@ -27,4 +31,6 @@ export const createServiceSupabaseClient = () => {
 }
 
 // Standard client for general use
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = hasRealSupabaseConfig 
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null
