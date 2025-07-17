@@ -51,9 +51,9 @@ const features = [
 ]
 
 export default function SignInPage() {
-  const { user, loading: authLoading } = useAuth()
+  const { user, loading: authLoading, signIn } = useAuth()
   const { login, isAuthenticated, loading, initialized, hydrated } = useCarvAuth()
-  const [authMethod, setAuthMethod] = useState<'carv' | 'email'>('carv')
+  const [authMethod, setAuthMethod] = useState<'carv' | 'email'>('email') // Default to email
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -145,7 +145,11 @@ export default function SignInPage() {
         return
       }
 
-      const { signIn } = useAuth()
+      if (!signIn) {
+        setError('Authentication service not available')
+        return
+      }
+
       const result = await signIn(email, password)
       
       if (!result.error) {

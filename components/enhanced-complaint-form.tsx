@@ -374,44 +374,35 @@ export default function EnhancedComplaintForm() {
             {/* Category */}
             <div>
               <Label htmlFor="category">Category *</Label>
-              <Select 
+              <select 
+                className="mt-2 w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 value={formData.category} 
-                onValueChange={(value) => handleInputChange('category', value)}
+                onChange={(e) => handleInputChange('category', e.target.value)}
+                required
               >
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <option value="">Select a category</option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Priority */}
             <div>
               <Label htmlFor="priority">Priority Level</Label>
-              <Select 
+              <select 
+                className="mt-2 w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 value={formData.priority.toString()} 
-                onValueChange={(value) => handleInputChange('priority', parseInt(value))}
+                onChange={(e) => handleInputChange('priority', parseInt(e.target.value))}
               >
-                <SelectTrigger className="mt-2">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {priorityLevels.map((level) => (
-                    <SelectItem key={level.value} value={level.value.toString()}>
-                      <div className="flex items-center">
-                        <div className={`w-3 h-3 rounded-full ${level.color} mr-2`} />
-                        {level.label}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                {priorityLevels.map((level) => (
+                  <option key={level.value} value={level.value.toString()}>
+                    {level.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Location */}
