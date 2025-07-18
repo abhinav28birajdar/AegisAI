@@ -182,16 +182,36 @@ export default function SignInPage() {
   const handleDemoLogin = async () => {
     try {
       setError('')
-      setSuccess('Demo login successful! Redirecting...')
+      setEmailLoading(true)
+      setSuccess('Demo login in progress...')
+      
+      console.log('🚀 Starting demo login')
+      
+      // Clear any existing auth state
+      localStorage.removeItem('carv_auth_session')
+      localStorage.removeItem('carv_profile')
+      
       const result = await login()
       
+      console.log('🔍 Demo login result:', result)
+      
       if (result.success) {
+        setSuccess('Demo login successful! Redirecting to dashboard...')
+        console.log('✅ Demo login successful, redirecting to:', redirectFrom)
+        
+        // Use setTimeout to ensure state is updated before redirect
         setTimeout(() => {
           router.push(redirectFrom)
-        }, 1000)
+        }, 1500)
+      } else {
+        setError(result.error || 'Demo login failed. Please try again.')
+        console.error('❌ Demo login failed:', result.error)
       }
-    } catch {
+    } catch (error) {
+      console.error('❌ Demo login error:', error)
       setError('Demo login failed. Please try again.')
+    } finally {
+      setEmailLoading(false)
     }
   }
 
@@ -393,12 +413,21 @@ export default function SignInPage() {
                   <div className="mt-6 pt-4 border-t border-gray-200">
                     <Button 
                       onClick={handleDemoLogin}
-                      disabled={loading}
+                      disabled={loading || emailLoading}
                       variant="outline"
                       className="w-full"
                       size="sm"
                     >
-                      🚀 Quick Demo Login (No Wallet Required)
+                      {emailLoading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                          Demo Login in Progress...
+                        </>
+                      ) : (
+                        <>
+                          🚀 Quick Demo Login (No Wallet Required)
+                        </>
+                      )}
                     </Button>
                     <p className="text-xs text-gray-500 mt-2 text-center">
                       Skip wallet setup and explore AegisAI features instantly

@@ -110,51 +110,62 @@ export default function DashboardPage() {
     return () => clearInterval(timer)
   }, [])
 
-  // Redirect to sign-in if not authenticated
+  // Simplified authentication check with single useEffect
   useEffect(() => {
-    if (mounted && initialized && !authLoading && !loading && !isAuthenticated && !user) {
-      router.push('/auth/signin?redirectedFrom=/dashboard')
+    if (!mounted) return
+    
+    // Check authentication state once everything is loaded
+    if (initialized && !authLoading && !loading) {
+      const isUserAuthenticated = user || isAuthenticated
+      console.log('🔍 Authentication check:', { 
+        user: !!user, 
+        isAuthenticated, 
+        initialized, 
+        authLoading, 
+        loading,
+        hydrated
+      })
+      
+      if (!isUserAuthenticated) {
+        console.log('🔄 Redirecting to sign-in page')
+        router.push('/auth/signin?redirectedFrom=/dashboard')
+      }
     }
-  }, [mounted, initialized, authLoading, loading, isAuthenticated, user, router])
+  }, [mounted, initialized, authLoading, loading, user, isAuthenticated, router])
 
-  // Show loading until everything is mounted and loaded
-  if (!mounted || authLoading || loading || !initialized) {
-    return <LoadingFallback />
-  }
-
-  // // Separate effect for actual redirect
-  // useEffect(() => {
-  //   if (shouldRedirect) {
-  //     console.log('🔄 Redirecting to signin page')
-  //     window.location.href = '/auth/signin?redirectedFrom=/dashboard'
-  //   }
-  // }, [shouldRedirect])
-
-  // Show loading while authentication is being checked
-  if (!hydrated || !initialized || loading) {
+  // Show loading while checking authentication
+  if (!mounted || authLoading || loading || !initialized || !hydrated) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your dashboard...</p>
+          <p className="text-gray-600 text-lg">Loading your dashboard...</p>
+          <p className="text-gray-500 text-sm mt-2">
+            {!mounted ? 'Initializing...' : 
+             !initialized ? 'Setting up authentication...' : 
+             !hydrated ? 'Preparing interface...' :
+             'Verifying credentials...'}
+          </p>
         </div>
       </div>
     )
   }
 
-  // Show authenticating state while waiting to redirect
-  if (!isAuthenticated) {
+  // If not authenticated, show sign-in prompt (fallback)
+  if (!user && !isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Please sign in to access your dashboard</h1>
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">
-            Checking authentication...
-          </p>
-          <div className="mt-4">
-            <Link href="/auth/signin">
-              <Button>Go to Sign In</Button>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center max-w-md">
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Authentication Required</h1>
+            <p className="text-gray-600 mb-6">
+              You need to sign in to access your dashboard.
+            </p>
+            <Link href="/auth/signin?redirectedFrom=/dashboard">
+              <Button className="w-full">
+                <Shield className="w-4 h-4 mr-2" />
+                Go to Sign In
+              </Button>
             </Link>
           </div>
         </div>

@@ -361,9 +361,15 @@ export const useCarvAuth = () => {
   const login = async () => {
     setLoading(true)
     try {
+      console.log('🚀 Starting CARV demo login')
+      
+      // Clear any existing auth state first
+      localStorage.removeItem('carv_auth_session')
+      localStorage.removeItem('carv_profile')
+      
       // For development, create a mock successful authentication
       const mockProfile: CarvProfile = {
-        carv_id: `carv_${Date.now()}`,
+        carv_id: `carv_demo_${Date.now()}`,
         wallet_address: '0x742d35Cc6435C1532C8a7b36F36A3f0b0c2b4567',
         verifiable_credentials: [
           {
@@ -384,15 +390,16 @@ export const useCarvAuth = () => {
       localStorage.setItem('carv_auth_session', 'true')
       localStorage.setItem('carv_profile', JSON.stringify(mockProfile))
       
+      // Update state immediately
       setProfile(mockProfile)
       setIsAuthenticated(true)
       
-      console.log('✅ User authenticated successfully')
+      console.log('✅ CARV demo login successful:', mockProfile)
       
       return { success: true, carv_id: mockProfile.carv_id }
     } catch (error) {
-      console.error('Authentication failed:', error)
-      return { success: false, error: 'Authentication failed' }
+      console.error('❌ CARV demo login failed:', error)
+      return { success: false, error: error instanceof Error ? error.message : 'Authentication failed' }
     } finally {
       setLoading(false)
     }
