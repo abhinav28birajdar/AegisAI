@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -51,6 +52,10 @@ const features = [
 ]
 
 export default function SignInPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectFrom = searchParams.get('redirectedFrom') || '/dashboard'
+  
   const { user, loading: authLoading, signIn } = useAuth()
   const { login, isAuthenticated, loading, initialized, hydrated } = useCarvAuth()
   const [authMethod, setAuthMethod] = useState<'carv' | 'email'>('email') // Default to email
@@ -66,6 +71,13 @@ export default function SignInPage() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (mounted && !authLoading && (user || isAuthenticated)) {
+      router.push(redirectFrom)
+    }
+  }, [mounted, authLoading, user, isAuthenticated, router, redirectFrom])
 
   // Show loading until mounted
   if (!mounted) {
@@ -124,7 +136,7 @@ export default function SignInPage() {
       if (result.success) {
         setSuccess('Successfully authenticated with CARV ID!')
         setTimeout(() => {
-          window.location.href = '/dashboard'
+          router.push(redirectFrom)
         }, 1500)
       } else {
         setError(result.error || 'Authentication failed')
@@ -155,7 +167,7 @@ export default function SignInPage() {
       if (!result.error) {
         setSuccess('Email authentication successful! Redirecting...')
         setTimeout(() => {
-          window.location.href = '/dashboard'
+          router.push(redirectFrom)
         }, 1500)
       } else {
         setError(result.error.message || 'Authentication failed. Please try again.')
@@ -175,7 +187,7 @@ export default function SignInPage() {
       
       if (result.success) {
         setTimeout(() => {
-          window.location.href = '/dashboard'
+          router.push(redirectFrom)
         }, 1000)
       }
     } catch {

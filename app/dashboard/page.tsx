@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -97,6 +98,7 @@ const mockActiveProposals = [
 ]
 
 export default function DashboardPage() {
+  const router = useRouter()
   const { user, loading: authLoading } = useAuth()
   const { profile, isAuthenticated, loading, initialized, hydrated } = useCarvAuth()
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -107,6 +109,13 @@ export default function DashboardPage() {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000)
     return () => clearInterval(timer)
   }, [])
+
+  // Redirect to sign-in if not authenticated
+  useEffect(() => {
+    if (mounted && initialized && !authLoading && !loading && !isAuthenticated && !user) {
+      router.push('/auth/signin?redirectedFrom=/dashboard')
+    }
+  }, [mounted, initialized, authLoading, loading, isAuthenticated, user, router])
 
   // Show loading until everything is mounted and loaded
   if (!mounted || authLoading || loading || !initialized) {
