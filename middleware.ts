@@ -15,6 +15,11 @@ export async function middleware(req: NextRequest) {
   }
 
   try {
+    // TEMPORARILY DISABLED: Authentication middleware for development
+    console.log('🔓 Middleware auth checks temporarily disabled for development')
+    return res
+    
+    /* ORIGINAL AUTH CODE - TEMPORARILY COMMENTED OUT
     const supabase = createMiddlewareClient({ req, res })
 
     const {
@@ -51,6 +56,7 @@ export async function middleware(req: NextRequest) {
     }
 
     return res
+    */
   } catch (error) {
     // If there's an error with Supabase, just continue
     console.error('Middleware error:', error)

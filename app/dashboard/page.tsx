@@ -114,64 +114,61 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!mounted) return
     
-    // Check authentication state once everything is loaded
-    if (initialized && !authLoading && !loading) {
-      const isUserAuthenticated = user || isAuthenticated
-      console.log('🔍 Authentication check:', { 
-        user: !!user, 
-        isAuthenticated, 
-        initialized, 
-        authLoading, 
-        loading,
-        hydrated
-      })
+    // TEMPORARILY DISABLED: Check authentication state once everything is loaded
+    // if (initialized && !authLoading && !loading) {
+    //   const isUserAuthenticated = user || isAuthenticated
+    //   console.log('🔍 Authentication check:', { 
+    //     user: !!user, 
+    //     isAuthenticated, 
+    //     initialized, 
+    //     authLoading, 
+    //     loading,
+    //     hydrated
+    //   })
       
-      if (!isUserAuthenticated) {
-        console.log('🔄 Redirecting to sign-in page')
-        router.push('/auth/signin?redirectedFrom=/dashboard')
-      }
-    }
+    //   if (!isUserAuthenticated) {
+    //     console.log('🔄 Redirecting to sign-in page')
+    //     router.push('/auth/signin?redirectedFrom=/dashboard')
+    //   }
+    // }
+    
+    console.log('🔓 Authentication temporarily disabled - Dashboard accessible without login')
   }, [mounted, initialized, authLoading, loading, user, isAuthenticated, router])
 
-  // Show loading while checking authentication
-  if (!mounted || authLoading || loading || !initialized || !hydrated) {
+  // Show loading while checking authentication (SIMPLIFIED FOR DEV MODE)
+  if (!mounted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600 text-lg">Loading your dashboard...</p>
-          <p className="text-gray-500 text-sm mt-2">
-            {!mounted ? 'Initializing...' : 
-             !initialized ? 'Setting up authentication...' : 
-             !hydrated ? 'Preparing interface...' :
-             'Verifying credentials...'}
-          </p>
+          <p className="text-gray-500 text-sm mt-2">Initializing interface...</p>
         </div>
       </div>
     )
   }
 
-  // If not authenticated, show sign-in prompt (fallback)
-  if (!user && !isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center max-w-md">
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Authentication Required</h1>
-            <p className="text-gray-600 mb-6">
-              You need to sign in to access your dashboard.
-            </p>
-            <Link href="/auth/signin?redirectedFrom=/dashboard">
-              <Button className="w-full">
-                <Shield className="w-4 h-4 mr-2" />
-                Go to Sign In
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  // TEMPORARILY DISABLED: If not authenticated, show sign-in prompt (fallback)
+  // if (!user && !isAuthenticated) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-gray-50">
+  //       <div className="text-center max-w-md">
+  //         <div className="bg-white rounded-lg shadow-lg p-8">
+  //           <h1 className="text-2xl font-bold text-gray-900 mb-4">Authentication Required</h1>
+  //           <p className="text-gray-600 mb-6">
+  //             You need to sign in to access your dashboard.
+  //           </p>
+  //           <Link href="/auth/signin?redirectedFrom=/dashboard">
+  //             <Button className="w-full">
+  //               <Shield className="w-4 h-4 mr-2" />
+  //               Go to Sign In
+  //             </Button>
+  //           </Link>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   )
+  // }
 
   const getGreeting = () => {
     const hour = currentTime.getHours()

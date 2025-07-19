@@ -215,6 +215,12 @@ export default function SignInPage() {
     }
   }
 
+  // TEMPORARY: Skip authentication and go directly to dashboard
+  const handleSkipAuth = () => {
+    console.log('🔓 Skipping authentication, going to dashboard')
+    router.push('/dashboard')
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -415,7 +421,7 @@ export default function SignInPage() {
                       onClick={handleDemoLogin}
                       disabled={loading || emailLoading}
                       variant="outline"
-                      className="w-full"
+                      className="w-full mb-3"
                       size="sm"
                     >
                       {emailLoading ? (
@@ -429,6 +435,17 @@ export default function SignInPage() {
                         </>
                       )}
                     </Button>
+                    
+                    {/* TEMPORARY: Skip Auth Button */}
+                    <Button 
+                      onClick={handleSkipAuth}
+                      variant="secondary"
+                      className="w-full bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border-yellow-300"
+                      size="sm"
+                    >
+                      🔓 Skip Auth - Go to Dashboard (Dev Mode)
+                    </Button>
+                    
                     <p className="text-xs text-gray-500 mt-2 text-center">
                       Skip wallet setup and explore AegisAI features instantly
                     </p>
