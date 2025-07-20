@@ -1,0 +1,12 @@
+{
+  "build": {
+    "cache": {
+      "paths": [
+        "node_modules/**",
+        ".next/cache/**",
+        ".vercel/output/**",
+        "public/**"
+      ]
+    }
+  }
+}
