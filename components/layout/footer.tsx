@@ -1,59 +1,152 @@
 "use client"
 
-import Link from "next/link"
-import { TwitterIcon } from "lucide-react"
+import React from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { Github, Twitter, Linkedin, Mail, Heart } from 'lucide-react'
 
 export function Footer() {
   return (
-    <footer className="bg-slate-900 text-white py-8 mt-auto">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="mb-4 md:mb-0">
-            <h3 className="text-xl font-bold text-blue-400">AegisAI</h3>
-            <p className="text-sm text-slate-300">
-              AI-Powered Civic Governance Platform
+    <footer className="bg-gray-900 text-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Company Info */}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Image
+                src="/icon.png"
+                alt="AegisAI"
+                width={32}
+                height={32}
+                className="rounded-lg"
+              />
+              <span className="text-xl font-bold">AegisAI</span>
+            </div>
+            <p className="text-gray-400 text-sm">
+              Empowering communities through AI-driven civic engagement and blockchain technology.
             </p>
+            <div className="flex space-x-4">
+              <Link 
+                href="https://twitter.com/abhi28birajdar" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-blue-400 transition-colors"
+              >
+                <Twitter className="w-5 h-5" />
+              </Link>
+              <Link 
+                href="https://github.com/abhinav28birajdar" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <Github className="w-5 h-5" />
+              </Link>
+              <Link 
+                href="https://linkedin.com/in/abhinav28birajdar" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-blue-600 transition-colors"
+              >
+                <Linkedin className="w-5 h-5" />
+              </Link>
+              <Link 
+                href="mailto:abhinav@aegisai.com" 
+                className="text-gray-400 hover:text-green-400 transition-colors"
+              >
+                <Mail className="w-5 h-5" />
+              </Link>
+            </div>
           </div>
-          
-          <div className="flex items-center space-x-6">
-            <Link 
-              href="/dashboard" 
-              className="text-slate-300 hover:text-white transition-colors"
-            >
-              Dashboard
-            </Link>
-            <Link 
-              href="/submit-complaint" 
-              className="text-slate-300 hover:text-white transition-colors"
-            >
-              Submit Issue
-            </Link>
-            <Link 
-              href="/profile" 
-              className="text-slate-300 hover:text-white transition-colors"
-            >
-              Profile
-            </Link>
+
+          {/* Platform */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Platform</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="/dashboard" className="text-gray-400 hover:text-white transition-colors">
+                  Dashboard
+                </Link>
+              </li>
+              <li>
+                <Link href="/submit-complaint" className="text-gray-400 hover:text-white transition-colors">
+                  Report Issue
+                </Link>
+              </li>
+              <li>
+                <Link href="/dao" className="text-gray-400 hover:text-white transition-colors">
+                  DAO Governance
+                </Link>
+              </li>
+              <li>
+                <Link href="/community" className="text-gray-400 hover:text-white transition-colors">
+                  Community
+                </Link>
+              </li>
+            </ul>
           </div>
-          
-          <div className="flex items-center space-x-4 mt-4 md:mt-0">
-            <span className="text-sm text-slate-300">Built by</span>
-            <Link
-              href="https://twitter.com/abhi28birajdar"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors"
-            >
-              <TwitterIcon className="h-4 w-4" />
-              <span className="font-medium">Abhinav</span>
-            </Link>
+
+          {/* Resources */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Resources</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="/docs" className="text-gray-400 hover:text-white transition-colors">
+                  Documentation
+                </Link>
+              </li>
+              <li>
+                <Link href="/help" className="text-gray-400 hover:text-white transition-colors">
+                  Help Center
+                </Link>
+              </li>
+              <li>
+                <Link href="/blog" className="text-gray-400 hover:text-white transition-colors">
+                  Blog
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Legal</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="/privacy" className="text-gray-400 hover:text-white transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="text-gray-400 hover:text-white transition-colors">
+                  Terms of Service
+                </Link>
+              </li>
+            </ul>
           </div>
         </div>
-        
-        <div className="mt-6 pt-6 border-t border-slate-700 text-center">
-          <p className="text-sm text-slate-400">
-            © 2025 AegisAI. All rights reserved. | Revolutionizing civic engagement through AI
-          </p>
+
+        {/* Bottom Section */}
+        <div className="border-t border-gray-800 mt-8 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex items-center space-x-2 text-gray-400 text-sm">
+              <span>© 2025 AegisAI. All rights reserved.</span>
+            </div>
+            
+            <div className="flex items-center space-x-2 text-gray-400 text-sm mt-4 md:mt-0">
+              <span>Made with</span>
+              <Heart className="w-4 h-4 text-red-500" />
+              <span>by</span>
+              <Link 
+                href="https://twitter.com/abhi28birajdar" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:text-blue-300 transition-colors font-medium"
+              >
+                Abhinav Birajdar
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

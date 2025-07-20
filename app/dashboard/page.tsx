@@ -1,7 +1,6 @@
-// Enhanced Citizen Dashboard for CivicChain
 'use client'
 
-import React, { useState, useEffect, Suspense } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -9,9 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { LoadingFallback } from '@/components/ui/loading-fallback'
+import { MainLayout } from '@/components/layout/main-layout'
 import { useAuth } from '@/lib/auth-context'
-import { useCarvAuth } from '@/lib/carv-sdk'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { 
   Plus, 
   FileText, 
@@ -31,78 +30,54 @@ import {
   Zap,
   Bell,
   Settings,
-  HelpCircle
+  HelpCircle,
+  Shield,
+  Globe,
+  Activity,
+  Eye
 } from 'lucide-react'
 
-// Mock data - in real app this would come from API
-const mockUserData = {
-  name: 'Alex Johnson',
-  carvId: 'carv_abc123def456',
-  walletAddress: '0x742d35Cc6639C0532fEb303a5A6FAe9EC33A8E73',
-  civicTokens: 1247.85,
-  reputationScore: 842,
-  reputationTier: 'Gold',
-  totalComplaints: 12,
-  resolvedComplaints: 9,
-  daoVotes: 8,
-  volunteerHours: 24.5,
-  nftBadges: ['Community Hero', 'Early Adopter', 'Active Voter']
+interface DashboardStats {
+  totalComplaints: number
+  resolvedComplaints: number
+  pendingComplaints: number
+  daoProposals: number
+  activeVotes: number
+  communityEvents: number
+  reputationScore: number
+  civicTokens: number
 }
 
-const mockRecentActivity = [
-  {
-    id: '1',
-    type: 'complaint',
-    title: 'Pothole on Main Street',
-    status: 'in_progress',
-    date: '2025-07-10',
-    priority: 'high'
-  },
-  {
-    id: '2',
-    type: 'dao_vote',
-    title: 'Community Park Renovation',
-    status: 'voted',
-    date: '2025-07-08',
-    priority: 'medium'
-  },
-  {
-    id: '3',
-    type: 'volunteer',
-    title: 'Beach Cleanup Initiative',
-    status: 'completed',
-    date: '2025-07-05',
-    priority: 'low'
-  }
-]
+interface RecentActivity {
+  id: string
+  type: 'complaint' | 'vote' | 'event' | 'proposal' | 'reward'
+  title: string
+  time: string
+  status: 'pending' | 'completed' | 'active'
+}
 
-const mockActiveProposals = [
-  {
-    id: '1',
-    title: 'Install Solar Panels on Municipal Buildings',
-    votingDeadline: '2025-07-25',
-    currentVotes: 1247,
-    requiredVotes: 2000,
-    support: 78,
-    status: 'active'
-  },
-  {
-    id: '2',
-    title: 'Expand Bicycle Lane Network',
-    votingDeadline: '2025-07-30',
-    currentVotes: 856,
-    requiredVotes: 1500,
-    support: 65,
-    status: 'active'
-  }
-]
+interface DAOProposal {
+  id: string
+  title: string
+  voting_end_date: string
+  current_votes: number
+  required_votes: number
+  support_threshold: number
+  status: 'active' | 'passed' | 'failed'
+}
 
 export default function DashboardPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
-  const { profile, isAuthenticated, loading, initialized, hydrated } = useCarvAuth()
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
+  const [activeProposals, setActiveProposals] = useState<DAOProposal[]>([])
+  const [userProfile, setUserProfile] = useState<any>(null)
   const [currentTime, setCurrentTime] = useState(new Date())
   const [mounted, setMounted] = useState(false)
+  const [loading, setLoading] = useState(true)
+  
+  const supabase = createClientComponentClient()
 
   useEffect(() => {
     setMounted(true)
@@ -110,349 +85,443 @@ export default function DashboardPage() {
     return () => clearInterval(timer)
   }, [])
 
-  // Simplified authentication check with single useEffect
   useEffect(() => {
-    if (!mounted) return
-    
-    // TEMPORARILY DISABLED: Check authentication state once everything is loaded
-    // if (initialized && !authLoading && !loading) {
-    //   const isUserAuthenticated = user || isAuthenticated
-    //   console.log('🔍 Authentication check:', { 
-    //     user: !!user, 
-    //     isAuthenticated, 
-    //     initialized, 
-    //     authLoading, 
-    //     loading,
-    //     hydrated
-    //   })
-      
-    //   if (!isUserAuthenticated) {
-    //     console.log('🔄 Redirecting to sign-in page')
-    //     router.push('/auth/signin?redirectedFrom=/dashboard')
-    //   }
-    // }
-    
-    console.log('🔓 Authentication temporarily disabled - Dashboard accessible without login')
-  }, [mounted, initialized, authLoading, loading, user, isAuthenticated, router])
+    if (mounted && !authLoading) {
+      if (!user) {
+        router.push('/auth/signin')
+      } else {
+        fetchDashboardData()
+      }
+    }
+  }, [mounted, authLoading, user, router])
 
-  // Show loading while checking authentication (SIMPLIFIED FOR DEV MODE)
-  if (!mounted) {
+  const fetchDashboardData = async () => {
+    if (!user) return
+    
+    try {
+      setLoading(true)
+      
+      // Get or create user profile
+      let { data: profile, error: profileError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+
+      if (profileError && profileError.code === 'PGRST116') {
+        // User doesn't exist, create profile
+        const { data: newProfile, error: createError } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            email: user.email,
+            full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+            avatar_url: user.user_metadata?.avatar_url || null,
+            reputation_score: 100,
+            civic_tokens: 0
+          })
+          .select()
+          .single()
+
+        if (createError) {
+          console.error('Error creating user profile:', createError)
+        } else {
+          profile = newProfile
+        }
+      }
+
+      setUserProfile(profile)
+
+      // Fetch dashboard statistics
+      const [
+        { count: totalComplaints },
+        { count: resolvedComplaints },
+        { count: daoProposals },
+        { count: activeVotes },
+        { count: communityEvents }
+      ] = await Promise.all([
+        supabase.from('complaints').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+        supabase.from('complaints').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'resolved'),
+        supabase.from('dao_proposals').select('*', { count: 'exact', head: true }),
+        supabase.from('dao_votes').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+        supabase.from('community_events').select('*', { count: 'exact', head: true })
+      ])
+
+      const dashboardStats: DashboardStats = {
+        totalComplaints: totalComplaints || 0,
+        resolvedComplaints: resolvedComplaints || 0,
+        pendingComplaints: (totalComplaints || 0) - (resolvedComplaints || 0),
+        daoProposals: daoProposals || 0,
+        activeVotes: activeVotes || 0,
+        communityEvents: communityEvents || 0,
+        reputationScore: profile?.reputation_score || 100,
+        civicTokens: profile?.civic_tokens || 0
+      }
+
+      setStats(dashboardStats)
+
+      // Fetch active proposals
+      const { data: proposals } = await supabase
+        .from('dao_proposals')
+        .select('*')
+        .eq('status', 'active')
+        .limit(3)
+        .order('created_at', { ascending: false })
+
+      setActiveProposals(proposals || [])
+
+      // Fetch recent activity (simplified for now)
+      const mockActivity: RecentActivity[] = [
+        {
+          id: '1',
+          type: 'vote',
+          title: 'Voted on infrastructure proposal',
+          time: '2 hours ago',
+          status: 'completed'
+        },
+        {
+          id: '2',
+          type: 'complaint',
+          title: 'Submitted new complaint',
+          time: '1 day ago',
+          status: 'pending'
+        }
+      ]
+
+      setRecentActivity(mockActivity)
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'complaint':
+        return <FileText className="w-4 h-4 text-orange-500" />
+      case 'vote':
+        return <Vote className="w-4 h-4 text-blue-500" />
+      case 'event':
+        return <Calendar className="w-4 h-4 text-green-500" />
+      case 'proposal':
+        return <MessageSquare className="w-4 h-4 text-purple-500" />
+      case 'reward':
+        return <Trophy className="w-4 h-4 text-yellow-500" />
+      default:
+        return <Activity className="w-4 h-4 text-gray-500" />
+    }
+  }
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="text-orange-600 border-orange-200">Pending</Badge>
+      case 'completed':
+        return <Badge className="bg-green-100 text-green-700">Completed</Badge>
+      case 'active':
+        return <Badge className="bg-blue-100 text-blue-700">Active</Badge>
+      default:
+        return <Badge variant="outline">{status}</Badge>
+    }
+  }
+
+  // Show loading while mounting or authenticating
+  if (!mounted || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Loading your dashboard...</p>
-          <p className="text-gray-500 text-sm mt-2">Initializing interface...</p>
+          <p className="text-gray-600 text-lg">Loading dashboard...</p>
         </div>
       </div>
     )
   }
 
-  // TEMPORARILY DISABLED: If not authenticated, show sign-in prompt (fallback)
-  // if (!user && !isAuthenticated) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-  //       <div className="text-center max-w-md">
-  //         <div className="bg-white rounded-lg shadow-lg p-8">
-  //           <h1 className="text-2xl font-bold text-gray-900 mb-4">Authentication Required</h1>
-  //           <p className="text-gray-600 mb-6">
-  //             You need to sign in to access your dashboard.
-  //           </p>
-  //           <Link href="/auth/signin?redirectedFrom=/dashboard">
-  //             <Button className="w-full">
-  //               <Shield className="w-4 h-4 mr-2" />
-  //               Go to Sign In
-  //             </Button>
-  //           </Link>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   )
-  // }
-
-  const getGreeting = () => {
-    const hour = currentTime.getHours()
-    if (hour < 12) return 'Good morning'
-    if (hour < 17) return 'Good afternoon'
-    return 'Good evening'
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'resolved':
-      case 'completed':
-        return 'bg-green-100 text-green-800'
-      case 'in_progress':
-        return 'bg-blue-100 text-blue-800'
-      case 'voted':
-        return 'bg-purple-100 text-purple-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'border-l-red-500'
-      case 'medium':
-        return 'border-l-yellow-500'
-      case 'low':
-        return 'border-l-green-500'
-      default:
-        return 'border-l-gray-500'
-    }
+  // Redirect to sign-in if not authenticated
+  if (!user) {
+    return null // Will redirect via useEffect
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">CC</span>
-                </div>
-                <span className="text-xl font-bold">CivicChain</span>
-              </Link>
+    <MainLayout>
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Shield className="w-8 h-8 text-blue-600" />
             </div>
-            
-            <nav className="hidden md:flex items-center space-x-6">
-              <Link href="/dashboard" className="text-blue-600 font-medium">Dashboard</Link>
-              <Link href="/complaints" className="text-gray-600 hover:text-gray-900">My Issues</Link>
-              <Link href="/dao" className="text-gray-600 hover:text-gray-900">DAO</Link>
-              <Link href="/community" className="text-gray-600 hover:text-gray-900">Community</Link>
-            </nav>
-
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm">
-                <Bell className="w-4 h-4" />
-              </Button>
-              <Button variant="ghost" size="sm">
-                <Settings className="w-4 h-4" />
-              </Button>
-              <Avatar>
-                <AvatarImage src="/placeholder-avatar.png" />
-                <AvatarFallback>{mockUserData.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-              </Avatar>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Welcome back, {userProfile?.full_name || user.email?.split('@')[0] || 'User'}
+              </h1>
+              <p className="text-gray-600">
+                {currentTime.toLocaleDateString('en-US', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </p>
             </div>
           </div>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {getGreeting()}, {mockUserData.name}! 👋
-          </h1>
-          <p className="text-gray-600">
-            Welcome back to your civic engagement dashboard. Here's what's happening in your community.
-          </p>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">CIVIC Tokens</p>
-                  <p className="text-2xl font-bold text-gray-900">{mockUserData.civicTokens.toLocaleString()}</p>
-                </div>
-                <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                  <Coins className="w-6 h-6 text-yellow-600" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <Badge variant="secondary" className="text-xs">
-                  +125 this week
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Reputation</p>
-                  <p className="text-2xl font-bold text-gray-900">{mockUserData.reputationScore}</p>
-                </div>
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Star className="w-6 h-6 text-purple-600" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <Badge className="text-xs bg-purple-100 text-purple-800">
-                  {mockUserData.reputationTier} Tier
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Issues Resolved</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {mockUserData.resolvedComplaints}/{mockUserData.totalComplaints}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <CheckCircle className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <Progress value={(mockUserData.resolvedComplaints / mockUserData.totalComplaints) * 100} className="h-2" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">DAO Votes</p>
-                  <p className="text-2xl font-bold text-gray-900">{mockUserData.daoVotes}</p>
-                </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Vote className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <Badge variant="secondary" className="text-xs">
-                  85% participation
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
+          
+          <div className="flex gap-3">
+            <Link href="/notifications">
+              <Button variant="outline" size="sm">
+                <Bell className="w-4 h-4 mr-2" />
+                Notifications
+              </Button>
+            </Link>
+            <Link href="/settings">
+              <Button variant="outline" size="sm">
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Quick Actions */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Zap className="w-5 h-5 mr-2" />
-              Quick Actions
-            </CardTitle>
-            <CardDescription>
-              Take action in your community with these common tasks
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Button asChild className="h-auto p-4 flex flex-col items-center space-y-2">
-                <Link href="/submit-complaint">
-                  <Plus className="w-6 h-6" />
-                  <span>Report Issue</span>
-                </Link>
-              </Button>
-              
-              <Button variant="outline" asChild className="h-auto p-4 flex flex-col items-center space-y-2">
-                <Link href="/dao">
-                  <Vote className="w-6 h-6" />
-                  <span>Vote on Proposals</span>
-                </Link>
-              </Button>
-              
-              <Button variant="outline" asChild className="h-auto p-4 flex flex-col items-center space-y-2">
-                <Link href="/community/events">
-                  <Calendar className="w-6 h-6" />
-                  <span>Join Events</span>
-                </Link>
-              </Button>
-              
-              <Button variant="outline" asChild className="h-auto p-4 flex flex-col items-center space-y-2">
-                <Link href="/community/volunteering">
-                  <Users className="w-6 h-6" />
-                  <span>Volunteer</span>
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Activity & Active Proposals */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Recent Activity */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Clock className="w-5 h-5 mr-2" />
-                Recent Activity
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {mockRecentActivity.map((activity) => (
-                  <div key={activity.id} className={`p-4 border-l-4 bg-gray-50 ${getPriorityColor(activity.priority)}`}>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-medium text-gray-900">{activity.title}</h4>
-                        <p className="text-sm text-gray-600 capitalize">{activity.type.replace('_', ' ')}</p>
-                      </div>
-                      <Badge className={getStatusColor(activity.status)}>
-                        {activity.status.replace('_', ' ')}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">{activity.date}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Link href="/submit-complaint">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Submit</p>
+                    <p className="text-lg font-semibold">New Complaint</p>
                   </div>
-                ))}
+                  <div className="p-2 bg-orange-100 rounded-lg">
+                    <Plus className="w-6 h-6 text-orange-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/dao/proposals">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Vote on</p>
+                    <p className="text-lg font-semibold">DAO Proposals</p>
+                  </div>
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <Vote className="w-6 h-6 text-blue-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/community/events">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Join</p>
+                    <p className="text-lg font-semibold">Community Events</p>
+                  </div>
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <Calendar className="w-6 h-6 text-green-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/community/chat">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Community</p>
+                    <p className="text-lg font-semibold">Chat & Discuss</p>
+                  </div>
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <MessageSquare className="w-6 h-6 text-purple-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Reputation Score</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats?.reputationScore || 0}</p>
+                  <p className="text-sm text-gray-500 mt-1">Citizen Level</p>
+                </div>
+                <div className="p-2 bg-yellow-100 rounded-lg">
+                  <Trophy className="w-6 h-6 text-yellow-600" />
+                </div>
               </div>
-              <Button variant="outline" className="w-full mt-4" asChild>
-                <Link href="/activity">View All Activity</Link>
-              </Button>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Civic Tokens</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats?.civicTokens || 0}</p>
+                  <p className="text-sm text-green-600 mt-1">+0 this month</p>
+                </div>
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <Coins className="w-6 h-6 text-green-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">DAO Votes Cast</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats?.activeVotes || 0}</p>
+                  <p className="text-sm text-blue-600 mt-1">Active participation</p>
+                </div>
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Vote className="w-6 h-6 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Complaints Resolved</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats?.resolvedComplaints || 0}</p>
+                  <p className="text-sm text-gray-500 mt-1">of {stats?.totalComplaints || 0} total</p>
+                </div>
+                <div className="p-2 bg-orange-100 rounded-lg">
+                  <CheckCircle className="w-6 h-6 text-orange-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Recent Activity */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="w-5 h-5" />
+                  Recent Activity
+                </CardTitle>
+                <CardDescription>Your latest civic engagement activities</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="space-y-4">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="flex items-center space-x-4">
+                        <div className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                          <div className="h-3 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : recentActivity.length > 0 ? (
+                  <div className="space-y-4">
+                    {recentActivity.map((activity) => (
+                      <div key={activity.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          {getActivityIcon(activity.type)}
+                          <div>
+                            <p className="font-medium text-sm">{activity.title}</p>
+                            <p className="text-xs text-gray-500">{activity.time}</p>
+                          </div>
+                        </div>
+                        {getStatusBadge(activity.status)}
+                      </div>
+                    ))}
+                    <div className="pt-4">
+                      <Link href="/profile">
+                        <Button variant="outline" className="w-full">
+                          View All Activity
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No Recent Activity</h3>
+                    <p className="text-gray-600">Start engaging with your community to see activity here.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Active DAO Proposals */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Vote className="w-5 h-5 mr-2" />
-                Active Proposals
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {mockActiveProposals.map((proposal) => (
-                  <div key={proposal.id} className="p-4 border border-gray-200 rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-2">{proposal.title}</h4>
-                    <div className="flex justify-between text-sm text-gray-600 mb-2">
-                      <span>Votes: {proposal.currentVotes}/{proposal.requiredVotes}</span>
-                      <span>Support: {proposal.support}%</span>
+          <div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Vote className="w-5 h-5" />
+                  Active Proposals
+                </CardTitle>
+                <CardDescription>Vote on important community decisions</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {activeProposals.length > 0 ? (
+                    activeProposals.map((proposal) => (
+                      <div key={proposal.id} className="p-3 border rounded-lg">
+                        <h4 className="font-medium text-sm mb-2">{proposal.title}</h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-xs text-gray-600">
+                            <span>{proposal.current_votes} votes</span>
+                            <span>{Math.round((proposal.current_votes / proposal.required_votes) * 100)}%</span>
+                          </div>
+                          <Progress value={(proposal.current_votes / proposal.required_votes) * 100} className="h-2" />
+                          <p className="text-xs text-gray-500">
+                            Deadline: {new Date(proposal.voting_end_date).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <Link href={`/dao/proposals/${proposal.id}`}>
+                          <Button size="sm" className="w-full mt-2">
+                            <Vote className="w-3 h-3 mr-1" />
+                            Vote Now
+                          </Button>
+                        </Link>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <Vote className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No Active Proposals</h3>
+                      <p className="text-gray-600">No proposals available for voting at the moment.</p>
                     </div>
-                    <Progress value={(proposal.currentVotes / proposal.requiredVotes) * 100} className="h-2 mb-2" />
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-500">Ends: {proposal.votingDeadline}</span>
-                      <Button size="sm" asChild>
-                        <Link href={`/dao/proposals/${proposal.id}`}>Vote</Link>
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Button variant="outline" className="w-full mt-4" asChild>
-                <Link href="/dao">View All Proposals</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* AI Assistant Widget */}
-        <div className="fixed bottom-6 right-6">
-          <Button 
-            size="lg" 
-            className="rounded-full w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg"
-          >
-            <MessageSquare className="w-6 h-6" />
-          </Button>
+                  )}
+                  <Link href="/dao/proposals">
+                    <Button variant="outline" className="w-full">
+                      View All Proposals
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
-    </div>
+    </MainLayout>
   )
 }

@@ -37,15 +37,18 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { display_name, avatar_url, carv_did_linked, data_sharing_consent } = await request.json()
+    const { full_name, avatar_url, carv_did_linked, bio, location, phone } = await request.json()
 
     const { data: profile, error } = await supabase
       .from("profiles")
       .update({
-        display_name,
+        full_name,
         avatar_url,
         carv_did_linked,
-        data_sharing_consent,
+        bio,
+        location,
+        phone,
+        updated_at: new Date().toISOString()
       })
       .eq("id", user.id)
       .select()

@@ -1,12 +1,13 @@
 // Enhanced Landing Page for AegisAI
 'use client'
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { useCarvAuth } from '@/lib/carv-sdk'
+import { useAuth } from '@/lib/auth-context'
 import { 
   Shield, 
   Brain, 
@@ -71,13 +72,22 @@ const features = [
 ]
 
 export default function Home() {
-  const { isAuthenticated, login, loading } = useCarvAuth()
+  const router = useRouter()
+  const { user, loading } = useAuth()
 
   const handleGetStarted = async () => {
-    if (isAuthenticated) {
-      window.location.href = '/dashboard'
+    if (user) {
+      router.push('/dashboard')
     } else {
-      await login()
+      router.push('/auth/signin')
+    }
+  }
+
+  const handleDashboardClick = () => {
+    if (user) {
+      router.push('/dashboard')
+    } else {
+      router.push('/auth/signin')
     }
   }
 
@@ -88,8 +98,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <Globe className="w-5 h-5 text-white" />
+              <div className="w-10 h-10  flex items-center justify-center">
+                <img src="/icon.png"  className="w-10 h-10 text-white" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 AegisAI
@@ -103,9 +113,12 @@ export default function Home() {
               <Link href="#about" className="text-gray-600 hover:text-gray-900 transition-colors">
                 About
               </Link>
-              <Link href="#community" className="text-gray-600 hover:text-gray-900 transition-colors">
+              <Link href="/community" className="text-gray-600 hover:text-gray-900 transition-colors">
                 Community
               </Link>
+              <Button variant="outline" size="sm" className="bg-yellow-50 hover:bg-yellow-100 text-yellow-800 border-yellow-300" onClick={handleDashboardClick}>
+                🚀 Dashboard
+              </Button>
               <Button variant="secondary" size="sm">
                 <Link href="/auth/signin" className="w-full h-full block">Sign In</Link>
               </Button>
@@ -143,13 +156,20 @@ export default function Home() {
                 disabled={loading}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
               >
-                {loading ? 'Connecting...' : isAuthenticated ? 'Go to Dashboard' : 'Sign in with CARV ID'}
+                {loading ? 'Loading...' : user ? 'Go to Dashboard' : 'Get Started'}
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
               
               <Button variant="outline" size="lg" asChild>
                 <Link href="#features">Learn More</Link>
               </Button>
+              
+              {user && (
+                <Badge className="self-center bg-green-100 text-green-800 border-green-300">
+                  <CheckCircle className="w-3 h-3 mr-1" />
+                  Authenticated
+                </Badge>
+              )}
             </div>
 
             {/* Stats */}
@@ -276,13 +296,15 @@ export default function Home() {
               disabled={loading}
               className="bg-white text-blue-600 hover:bg-gray-100"
             >
-              {loading ? 'Connecting...' : 'Get Started Now'}
+              {loading ? 'Loading...' : 'Get Started Now'}
               <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
             
-            <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-blue-600">
-              View Live Demo
-            </Button>
+            <Link href="/auth/signin">
+              <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-blue-600">
+                Sign In to Platform
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -299,17 +321,20 @@ export default function Home() {
                 <span className="text-xl font-bold">AegisAI</span>
               </div>
               <p className="text-gray-400 mb-4 max-w-md">
-                Empowering citizens and transforming governance through AI, Web3, and self-sovereign identity.
+                Empowering citizens through AI, Web3, and CARV Self-Sovereign Identity. Your digital identity, your data, your control.
               </p>
-              <div className="flex space-x-4">
+              <div className="flex flex-wrap gap-2">
                 <Badge variant="outline" className="border-gray-600 text-gray-400">
-                  Powered by CARV
+                  <Shield className="w-3 h-3 mr-1" />
+                  CARV Protocol
                 </Badge>
                 <Badge variant="outline" className="border-gray-600 text-gray-400">
+                  <Brain className="w-3 h-3 mr-1" />
                   Gemini AI
                 </Badge>
                 <Badge variant="outline" className="border-gray-600 text-gray-400">
-                  Polygon
+                  <Coins className="w-3 h-3 mr-1" />
+                  Polygon Network
                 </Badge>
               </div>
             </div>

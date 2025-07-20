@@ -1,15 +1,35 @@
-"use client"
+'use client'
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { MainLayout } from "@/components/layout/main-layout"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card } from "@/components/ui/card"
-import { CogIcon, ShieldCheckIcon, BellIcon, DocumentArrowDownIcon } from "@heroicons/react/24/outline"
+import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { Separator } from '@/components/ui/separator'
+import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { MainLayout } from '@/components/layout/main-layout'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { 
+  Settings as SettingsIcon,
+  User,
+  Bell as BellIcon,
+  Shield as ShieldCheckIcon,
+  Palette,
+  Globe,
+  Key,
+  Database,
+  ArrowLeft,
+  Save,
+  Eye,
+  EyeOff,
+  Cog as CogIcon,
+  Download as DocumentArrowDownIcon
+} from 'lucide-react'
 
-export default function Settings() {
+export default function SettingsPage() {
   const [profile, setProfile] = useState<any>(null)
   const [dataSharingConsent, setDataSharingConsent] = useState(false)
   const [emailNotifications, setEmailNotifications] = useState(true)
@@ -95,93 +115,104 @@ export default function Settings() {
         <div className="space-y-6">
           {/* Account Settings */}
           <Card>
-            <h3 className="text-lg font-semibold mb-4">Account Settings</h3>
-            <form onSubmit={handleChangePassword} className="space-y-4">
-              <Input
-                label="Current Password"
-                id="currentPassword"
-                type="password"
-                placeholder="Enter current password"
-              />
-              <Input label="New Password" id="newPassword" type="password" placeholder="Enter new password" />
-              <Input
-                label="Confirm New Password"
-                id="confirmPassword"
-                type="password"
-                placeholder="Confirm new password"
-              />
-              <Button type="submit" variant="secondary">
-                Change Password
-              </Button>
-            </form>
+            <CardHeader>
+              <CardTitle>Account Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleChangePassword} className="space-y-4">
+                <Input
+                  label="Current Password"
+                  id="currentPassword"
+                  type="password"
+                  placeholder="Enter current password"
+                />
+                <Input label="New Password" id="newPassword" type="password" placeholder="Enter new password" />
+                <Input
+                  label="Confirm New Password"
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="Confirm new password"
+                />
+                <Button type="submit" variant="secondary">
+                  Change Password
+                </Button>
+              </form>
+            </CardContent>
           </Card>
 
           {/* Notification Preferences */}
           <Card>
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <BellIcon className="w-5 h-5" />
-              Notification Preferences
-            </h3>
-            <div className="space-y-4">
-              <label className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={emailNotifications}
-                  onChange={(e) => setEmailNotifications(e.target.checked)}
-                  className="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500"
-                />
-                <span className="text-gray-700">Email Notifications</span>
-              </label>
-              <p className="text-sm text-gray-600">
-                Receive email updates about your complaints and system announcements.
-              </p>
-            </div>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BellIcon className="w-5 h-5" />
+                Notification Preferences
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <label className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={emailNotifications}
+                    onChange={(e) => setEmailNotifications(e.target.checked)}
+                    className="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500"
+                  />
+                  <span className="text-gray-700">Email Notifications</span>
+                </label>
+                <p className="text-sm text-gray-600">
+                  Receive email updates about your complaints and system announcements.
+                </p>
+              </div>
+            </CardContent>
           </Card>
 
           {/* Data & Privacy - CRUCIAL for CARV demo */}
           <Card>
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <ShieldCheckIcon className="w-5 h-5" />
-              Data & Privacy
-            </h3>
-
-            <div className="space-y-6">
-              <div>
-                <h4 className="font-medium text-gray-900 mb-3">Data Sharing & Ownership</h4>
-                <label className="flex items-start gap-3">
-                  <input
-                    type="checkbox"
-                    checked={dataSharingConsent}
-                    onChange={(e) => setDataSharingConsent(e.target.checked)}
-                    className="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500 mt-1"
-                  />
-                  <div>
-                    <span className="text-gray-700">
-                      Allow AegisAI to contribute anonymized civic data to your CARV profile for potential compensation.
-                    </span>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Your privacy is paramount. AegisAI leverages CARV to ensure you own and control your civic data,
-                      with full transparency and the potential to earn from your contributions.
-                    </p>
-                  </div>
-                </label>
-              </div>
-
-              <div className="flex gap-3">
-                <Button variant="primary" onClick={handleUpdateDataSharing} isLoading={isLoading}>
-                  Update Preferences
-                </Button>
-                <Button variant="secondary" onClick={handleRequestDataExport} icon={DocumentArrowDownIcon}>
-                  Request Data Export
-                </Button>
-              </div>
-
-              {message && (
-                <div className={`text-sm ${message.includes("successfully") ? "text-green-600" : "text-blue-600"}`}>
-                  {message}
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShieldCheckIcon className="w-5 h-5" />
+                Data & Privacy
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3">Data Sharing & Ownership</h4>
+                  <label className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={dataSharingConsent}
+                      onChange={(e) => setDataSharingConsent(e.target.checked)}
+                      className="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500 mt-1"
+                    />
+                    <div>
+                      <span className="text-gray-700">
+                        Allow AegisAI to contribute anonymized civic data to your CARV profile for potential compensation.
+                      </span>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Your privacy is paramount. AegisAI leverages CARV to ensure you own and control your civic data,
+                        with full transparency and the potential to earn from your contributions.
+                      </p>
+                    </div>
+                  </label>
                 </div>
-              )}
-            </div>
+
+                <div className="flex gap-3">
+                  <Button variant="primary" onClick={handleUpdateDataSharing} isLoading={isLoading}>
+                    Update Preferences
+                  </Button>
+                  <Button variant="secondary" onClick={handleRequestDataExport} icon={DocumentArrowDownIcon}>
+                    Request Data Export
+                  </Button>
+                </div>
+
+                {message && (
+                  <div className={`text-sm ${message.includes("successfully") ? "text-green-600" : "text-blue-600"}`}>
+                    {message}
+                  </div>
+                )}
+              </div>
+            </CardContent>
           </Card>
         </div>
       </div>

@@ -1,168 +1,271 @@
-"use client"
+'use client'
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card } from "@/components/ui/card"
-import { useAuth } from "@/lib/auth-context"
+import React, { useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from 'lucide-react'
+import Image from 'next/image'
 
-export default function SignUp() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [fullName, setFullName] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
+export default function SignUpPage() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [location, setLocation] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [success, setSuccess] = useState('')
 
   const router = useRouter()
-  const { signUp, user } = useAuth()
+  const supabase = createClientComponentClient()
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (user) {
-      router.push("/dashboard")
-    }
-  }, [user, router])
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-    setError("")
-    setSuccess("")
+    setLoading(true)
+    setErrorMessage('')
+    setSuccess('')
 
     // Validation
     if (password !== confirmPassword) {
-      setError("Passwords do not match")
-      setIsLoading(false)
+      setErrorMessage('Passwords do not match')
+      setLoading(false)
       return
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters long")
-      setIsLoading(false)
+      setErrorMessage('Password must be at least 6 characters')
+      setLoading(false)
       return
     }
 
     try {
-      const { error } = await signUp(email, password, {
-        full_name: fullName,
+      // Sign up user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          data: {
+            full_name: fullName,
+            phone: phone,
+            location: location
+          }
+        }
       })
 
-      if (error) {
-        setError(error.message)
-      } else {
-        setSuccess("Check your email for a confirmation link!")
+      if (authError) throw authError
+
+      if (authData.user) {
+        setSuccess('Account created successfully! Please check your email to verify your account.')
+        
+        // Redirect to sign in after 2 seconds
+        setTimeout(() => {
+          router.push('/auth/signin')
+        }, 2000)
       }
-    } catch (error) {
-      setError("An unexpected error occurred")
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : 'An error occurred during sign up')
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
-  if (user) {
-    return null // Will redirect
-  }
-
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Card className="p-6">
-          <div className="text-center mb-6">
-            <h2 className="text-3xl font-bold text-gray-900">Create Your Account</h2>
-            <p className="mt-2 text-gray-600">Join AegisAI and make your voice heard</p>
+        {/* Header */}
+        <div className="text-center mb-8">
+          <Link href="/" className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-800 mb-4">
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Home</span>
+          </Link>
+          
+          <div className="flex items-center justify-center space-x-2 mb-4">
+            <Image
+              src="/icon.png"
+              alt="AegisAI"
+              width={40}
+              height={40}
+              className="rounded-lg"
+            />
+            <h1 className="text-2xl font-bold text-gray-900">AegisAI</h1>
           </div>
+          
+          <p className="text-gray-600">Create your civic engagement account</p>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              label="Full Name"
-              id="fullName"
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-              className="w-full"
-              placeholder="Enter your full name"
-            />
-
-            <Input
-              label="Email Address"
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full"
-              placeholder="Enter your email"
-            />
-
-            <Input
-              label="Password"
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full"
-              placeholder="Enter your password"
-            />
-
-            <Input
-              label="Confirm Password"
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              className="w-full"
-              placeholder="Confirm your password"
-            />
-
-            {error && (
-              <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md border border-red-200">
-                {error}
+        <Card>
+          <CardHeader>
+            <CardTitle>Sign Up</CardTitle>
+            <CardDescription>
+              Join the community to report issues, vote on proposals, and make a difference
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            <form onSubmit={handleSignUp} className="space-y-4">
+              {/* Full Name */}
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Full Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
               </div>
-            )}
 
-            {success && (
-              <div className="text-green-600 text-sm bg-green-50 p-3 rounded-md border border-green-200">
-                {success}
+              {/* Email */}
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
               </div>
-            )}
 
-            <Button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              disabled={isLoading}
-            >
-              {isLoading ? "Creating Account..." : "Create Account"}
-            </Button>
-          </form>
+              {/* Phone */}
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number (Optional)</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="Enter your phone number"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Already have an account?{" "}
-              <Link href="/auth/signin" className="text-blue-600 hover:text-blue-500 font-medium">
-                Sign In
-              </Link>
-            </p>
-          </div>
+              {/* Location */}
+              <div className="space-y-2">
+                <Label htmlFor="location">Location (Optional)</Label>
+                <Input
+                  id="location"
+                  type="text"
+                  placeholder="City, State/Country"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                />
+              </div>
 
-          <div className="mt-4 text-xs text-gray-500 text-center">
-            By creating an account, you agree to our{" "}
-            <Link href="/terms" className="text-blue-600 hover:text-blue-500">
-              Terms of Service
-            </Link>{" "}
-            and{" "}
-            <Link href="/privacy" className="text-blue-600 hover:text-blue-500">
-              Privacy Policy
-            </Link>
-          </div>
+              {/* Password */}
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Create a password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10 pr-10"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Confirm Password */}
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    placeholder="Confirm your password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="pl-10 pr-10"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Error Display */}
+              {errorMessage && (
+                <Alert variant="destructive">
+                  <AlertDescription>{errorMessage}</AlertDescription>
+                </Alert>
+              )}
+
+              {/* Success Display */}
+              {success && (
+                <Alert className="border-green-200 bg-green-50">
+                  <AlertDescription className="text-green-800">{success}</AlertDescription>
+                </Alert>
+              )}
+
+              {/* Submit Button */}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Creating Account...
+                  </>
+                ) : (
+                  'Create Account'
+                )}
+              </Button>
+
+              {/* Sign In Link */}
+              <div className="text-center text-sm">
+                <span className="text-gray-600">Already have an account? </span>
+                <Link href="/auth/signin" className="text-blue-600 hover:text-blue-800 font-medium">
+                  Sign In
+                </Link>
+              </div>
+            </form>
+          </CardContent>
         </Card>
+
+        {/* Terms and Privacy */}
+        <p className="text-center text-xs text-gray-500 mt-4">
+          By creating an account, you agree to our{' '}
+          <Link href="/terms" className="text-blue-600 hover:underline">
+            Terms of Service
+          </Link>{' '}
+          and{' '}
+          <Link href="/privacy" className="text-blue-600 hover:underline">
+            Privacy Policy
+          </Link>
+        </p>
       </div>
     </div>
   )

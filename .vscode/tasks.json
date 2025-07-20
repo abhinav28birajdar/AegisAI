@@ -1,0 +1,36 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "TypeScript: Restart TS Server",
+      "type": "shell",
+      "command": "echo",
+      "args": ["Restarting TypeScript server..."],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Clean TypeScript Cache",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-Command",
+        "Remove-Item '.next' -Recurse -Force -ErrorAction SilentlyContinue; Remove-Item 'node_modules/.cache' -Recurse -Force -ErrorAction SilentlyContinue; Write-Host 'Cache cleared successfully'"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
